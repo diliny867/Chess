@@ -2,7 +2,7 @@
 
 
 #include <array>
-#include <functional>
+#include <bitset>
 #include <vector>
 
 #include "Common.h"
@@ -10,6 +10,15 @@
 //#define APPLY_FLAG(target, flag) do{(*(reinterpret_cast<u8*>(&(target)))) |= (flag);}while(0)
 //#define DISABLE_FLAG(target, flag) do{(*(reinterpret_cast<u8*>(&(target)))) &= ~(flag);}while(0)
 //#define CHECK_FLAG(target, flag) ((*(reinterpret_cast<u8*>(&(target)))) & (flag))
+static void applyFlag(u8& target, u8 flag) {
+	target |= flag;
+}
+static void disableFlag(u8& target, u8 flag) {
+	target &= ~flag;
+}
+static u8 getFlag(u8 target, u8 flag) {
+	return target & flag;
+}
 class Chess {
 public:
 	enum PieceType : i8{
@@ -22,7 +31,8 @@ public:
 		King
 	};
 	typedef u8 ColorId;
-	inline static ColorId ColorIds[2] = {0,1};
+	static const u8 colorIdCount = 2;
+	inline static ColorId ColorIds[colorIdCount] = {0,1};
 	struct Piece {
 		PieceType type = Empty;
 		ColorId colorId = ColorIds[0];
@@ -63,6 +73,7 @@ private:
 			u8 directions;
 			u8 count;
 		};
+		//Attack atColorId[colorIdCount];
 		Attack black;
 		Attack white;
 	};
@@ -82,10 +93,12 @@ private:
 		auto& attack = getAttack(x, y);
 		if(colorId == ColorIds[1]) {
 			attack.black.count++;
-			attack.black.directions |= direction;
+			//attack.black.directions |= direction;
+			applyFlag(attack.black.directions, direction);
 		}else {
 			attack.white.count++;
-			attack.white.directions |= direction;
+			//attack.white.directions |= direction;
+			applyFlag(attack.white.directions, direction);
 		}
 		return GetPiece(x, y).type == Empty;
 	}
@@ -96,10 +109,12 @@ private:
 		auto& attack = getAttack(x, y);
 		if(colorId == ColorIds[1]) {
 			attack.black.count--;
-			attack.black.directions &= ~direction;
+			//attack.black.directions &= ~direction;
+			disableFlag(attack.black.directions, direction);
 		}else {
 			attack.white.count--;
-			attack.white.directions &= ~direction;
+			//attack.white.directions &= ~direction;
+			disableFlag(attack.white.directions, direction);
 		}
 		return GetPiece(x, y).type == Empty;
 	}
@@ -203,14 +218,14 @@ private:
 			incAttackInDirection(x, y, colorId, AttackType::Attack::Bottom);
 			break;
 		case King:
-			incAttack(x - 1, y + 1, colorId, AttackType::Attack::TopLeft);
-			incAttack(x - 1, y, colorId, AttackType::Attack::Left);
-			incAttack(x - 1, y - 1, colorId, AttackType::Attack::BottomLeft);
-			incAttack(x + 1, y + 1, colorId, AttackType::Attack::TopRight);
-			incAttack(x + 1, y, colorId, AttackType::Attack::Right);
-			incAttack(x + 1, y - 1, colorId, AttackType::Attack::BottomRight);
-			incAttack(x, y + 1, colorId, AttackType::Attack::Top);
-			incAttack(x, y - 1, colorId, AttackType::Attack::Bottom);
+			incAttack(x - 1, y + 1, colorId, AttackType::Attack::NoDirection);
+			incAttack(x - 1, y, colorId, AttackType::Attack::NoDirection);
+			incAttack(x - 1, y - 1, colorId, AttackType::Attack::NoDirection);
+			incAttack(x + 1, y + 1, colorId, AttackType::Attack::NoDirection);
+			incAttack(x + 1, y, colorId, AttackType::Attack::NoDirection);
+			incAttack(x + 1, y - 1, colorId, AttackType::Attack::NoDirection);
+			incAttack(x, y + 1, colorId, AttackType::Attack::NoDirection);
+			incAttack(x, y - 1, colorId, AttackType::Attack::NoDirection);
 			break;
 		default:
 			break;
@@ -256,14 +271,14 @@ private:
 			decAttackInDirection(x, y, colorId, AttackType::Attack::Bottom);
 			break;
 		case King:
-			decAttack(x - 1, y + 1, colorId, AttackType::Attack::TopLeft);
-			decAttack(x - 1, y, colorId, AttackType::Attack::Left);
-			decAttack(x - 1, y - 1, colorId, AttackType::Attack::BottomLeft);
-			decAttack(x + 1, y + 1, colorId, AttackType::Attack::TopRight);
-			decAttack(x + 1, y, colorId, AttackType::Attack::Right);
-			decAttack(x + 1, y - 1, colorId, AttackType::Attack::BottomRight);
-			decAttack(x, y + 1, colorId, AttackType::Attack::Top);
-			decAttack(x, y - 1, colorId, AttackType::Attack::Bottom);
+			decAttack(x - 1, y + 1, colorId, AttackType::Attack::NoDirection);
+			decAttack(x - 1, y, colorId, AttackType::Attack::NoDirection);
+			decAttack(x - 1, y - 1, colorId, AttackType::Attack::NoDirection);
+			decAttack(x + 1, y + 1, colorId, AttackType::Attack::NoDirection);
+			decAttack(x + 1, y, colorId, AttackType::Attack::NoDirection);
+			decAttack(x + 1, y - 1, colorId, AttackType::Attack::NoDirection);
+			decAttack(x, y + 1, colorId, AttackType::Attack::NoDirection);
+			decAttack(x, y - 1, colorId, AttackType::Attack::NoDirection);
 			break;
 		default:
 			break;
@@ -273,14 +288,14 @@ private:
 		ColorId colorId = ColorIds[0];
 		for(int i=0; i<2; i++){
 			const auto& directions = colorId == ColorIds[1] ? getAttack(x, y).black.directions : getAttack(x, y).white.directions;
-			incAttackInDirection(x, y, colorId, static_cast<AttackType::Attack::Direction>(directions & AttackType::Attack::Left));
-			incAttackInDirection(x, y, colorId, static_cast<AttackType::Attack::Direction>(directions & AttackType::Attack::TopLeft));
-			incAttackInDirection(x, y, colorId, static_cast<AttackType::Attack::Direction>(directions & AttackType::Attack::Top));
-			incAttackInDirection(x, y, colorId, static_cast<AttackType::Attack::Direction>(directions & AttackType::Attack::TopRight));
-			incAttackInDirection(x, y, colorId, static_cast<AttackType::Attack::Direction>(directions & AttackType::Attack::Right));
-			incAttackInDirection(x, y, colorId, static_cast<AttackType::Attack::Direction>(directions & AttackType::Attack::BottomRight));
-			incAttackInDirection(x, y, colorId, static_cast<AttackType::Attack::Direction>(directions & AttackType::Attack::Bottom));
-			incAttackInDirection(x, y, colorId, static_cast<AttackType::Attack::Direction>(directions & AttackType::Attack::BottomLeft));
+			incAttackInDirection(x, y, colorId, static_cast<AttackType::Attack::Direction>(getFlag(directions, AttackType::Attack::Left)));
+			incAttackInDirection(x, y, colorId, static_cast<AttackType::Attack::Direction>(getFlag(directions, AttackType::Attack::TopLeft)));
+			incAttackInDirection(x, y, colorId, static_cast<AttackType::Attack::Direction>(getFlag(directions, AttackType::Attack::Top)));
+			incAttackInDirection(x, y, colorId, static_cast<AttackType::Attack::Direction>(getFlag(directions, AttackType::Attack::TopRight)));
+			incAttackInDirection(x, y, colorId, static_cast<AttackType::Attack::Direction>(getFlag(directions, AttackType::Attack::Right)));
+			incAttackInDirection(x, y, colorId, static_cast<AttackType::Attack::Direction>(getFlag(directions, AttackType::Attack::BottomRight)));
+			incAttackInDirection(x, y, colorId, static_cast<AttackType::Attack::Direction>(getFlag(directions, AttackType::Attack::Bottom)));
+			incAttackInDirection(x, y, colorId, static_cast<AttackType::Attack::Direction>(getFlag(directions, AttackType::Attack::BottomLeft)));
 			colorId = colorId == ColorIds[0] ? ColorIds[1] : ColorIds[0];
 		}
 	}
@@ -288,14 +303,14 @@ private:
 		ColorId colorId = ColorIds[0];
 		for(int i=0; i<2; i++){
 			const auto& directions = colorId == ColorIds[1] ? getAttack(x, y).black.directions : getAttack(x, y).white.directions;
-			decAttackInDirection(x, y, colorId, static_cast<AttackType::Attack::Direction>(directions & AttackType::Attack::Left));
-			decAttackInDirection(x, y, colorId, static_cast<AttackType::Attack::Direction>(directions & AttackType::Attack::TopLeft));
-			decAttackInDirection(x, y, colorId, static_cast<AttackType::Attack::Direction>(directions & AttackType::Attack::Top));
-			decAttackInDirection(x, y, colorId, static_cast<AttackType::Attack::Direction>(directions & AttackType::Attack::TopRight));
-			decAttackInDirection(x, y, colorId, static_cast<AttackType::Attack::Direction>(directions & AttackType::Attack::Right));
-			decAttackInDirection(x, y, colorId, static_cast<AttackType::Attack::Direction>(directions & AttackType::Attack::BottomRight));
-			decAttackInDirection(x, y, colorId, static_cast<AttackType::Attack::Direction>(directions & AttackType::Attack::Bottom));
-			decAttackInDirection(x, y, colorId, static_cast<AttackType::Attack::Direction>(directions & AttackType::Attack::BottomLeft));
+			decAttackInDirection(x, y, colorId, static_cast<AttackType::Attack::Direction>(getFlag(directions, AttackType::Attack::Left)));
+			decAttackInDirection(x, y, colorId, static_cast<AttackType::Attack::Direction>(getFlag(directions, AttackType::Attack::TopLeft)));
+			decAttackInDirection(x, y, colorId, static_cast<AttackType::Attack::Direction>(getFlag(directions, AttackType::Attack::Top)));
+			decAttackInDirection(x, y, colorId, static_cast<AttackType::Attack::Direction>(getFlag(directions, AttackType::Attack::TopRight)));
+			decAttackInDirection(x, y, colorId, static_cast<AttackType::Attack::Direction>(getFlag(directions, AttackType::Attack::Right)));
+			decAttackInDirection(x, y, colorId, static_cast<AttackType::Attack::Direction>(getFlag(directions, AttackType::Attack::BottomRight)));
+			decAttackInDirection(x, y, colorId, static_cast<AttackType::Attack::Direction>(getFlag(directions, AttackType::Attack::Bottom)));
+			decAttackInDirection(x, y, colorId, static_cast<AttackType::Attack::Direction>(getFlag(directions, AttackType::Attack::BottomLeft)));
 			colorId = colorId == ColorIds[0] ? ColorIds[1] : ColorIds[0];
 		}
 	}
@@ -328,53 +343,6 @@ private:
 		board = lastBoard;
 		kingsAt = lastKingsAt;
 		return check;
-	}
-	CanCastleResult canCastle(i8 kingX, i8 kingY) {
-		const Piece& king = GetPiece(kingX, kingY);
-		if(king.type != King || king.moveCount>0) {
-			return {false, false};
-		}
-		CanCastleResult result = {true, true};
-		const Piece& leftRook = GetPiece(0, kingY);
-		const Piece& rightRook = GetPiece(7, kingY);
-		if(leftRook.type == Rook && leftRook.moveCount == 0 && leftRook.colorId == king.colorId) {
-			for(i8 i=1;i<kingX;i++) {
-				if(GetPiece(i,kingY).type != Empty || squareInCheck(i,kingY,king.colorId)) {
-					result.left = false;
-					break;
-				}
-			}
-		}
-		if(rightRook.type == Rook && rightRook.moveCount == 0 && rightRook.colorId == king.colorId) {
-			for(i8 i=kingX+1;i<7;i++) {
-				if(GetPiece(i,kingY).type != Empty || squareInCheck(i,kingY,king.colorId)) {
-					result.right = false;
-					break;
-				}
-			}
-		}
-		return result;
-	}
-	void clearBoard() {
-		board.fill(NewPiece(Empty,ColorIds[0]));
-		attacks.fill({{0,0},{0,0}});
-	}
-	void setStartBoard() {
-		clearBoard();
-		for (i8 i=0; i<8; i++) {
-			SetPiece(i, 1, NewPiece(Pawn, ColorIds[0]));
-			SetPiece(i, 6, NewPiece(Pawn, ColorIds[1]));
-		}
-		for(i8 y = 0; y<=7; y+=7){
-			SetPiece(0, y, NewPiece(Rook, y == 7 ? ColorIds[1] : ColorIds[0]));
-			SetPiece(7, y, NewPiece(Rook, y == 7 ? ColorIds[1] : ColorIds[0]));
-			SetPiece(1, y, NewPiece(Knight, y == 7 ? ColorIds[1] : ColorIds[0]));
-			SetPiece(6, y, NewPiece(Knight, y == 7 ? ColorIds[1] : ColorIds[0]));
-			SetPiece(2, y, NewPiece(Bishop, y == 7 ? ColorIds[1] : ColorIds[0]));
-			SetPiece(5, y, NewPiece(Bishop, y == 7 ? ColorIds[1] : ColorIds[0]));
-			SetPiece(3, y, NewPiece(Queen, y == 7 ? ColorIds[1] : ColorIds[0]));
-			SetPiece(4, y, NewPiece(King, y == 7 ? ColorIds[1] : ColorIds[0]));
-		}
 	}
 	bool isValidTurnNoCheck(i8 fromX, i8 fromY, i8 toX, i8 toY) {
 		if (fromX < 0 || fromX >= 8 || fromY < 0 || fromY >= 8 || toX < 0 || toX >= 8 || toY < 0 || toY >= 8) {
@@ -409,7 +377,7 @@ private:
 						return true;
 					}
 					if(lastMove.to.x == toX && lastMove.piece.type == Pawn && lastMove.piece.colorId != pieceFrom.colorId && std::abs(lastMove.to.y - lastMove.from.y) == 2 
-							&& (pieceFrom.colorId && fromY == 3 || !pieceFrom.colorId && fromY == 4)) { //en passant
+					   && (pieceFrom.colorId && fromY == 3 || !pieceFrom.colorId && fromY == 4)) { //en passant
 						return true;
 					}
 				}
@@ -511,20 +479,123 @@ private:
 			return false;
 		}
 	}
+	CanCastleResult canCastle(i8 kingX, i8 kingY) {
+		const Piece& king = GetPiece(kingX, kingY);
+		if(king.type != King || king.moveCount>0) {
+			return {false, false};
+		}
+		CanCastleResult result = {true, true};
+		const Piece& leftRook = GetPiece(0, kingY);
+		const Piece& rightRook = GetPiece(7, kingY);
+		if(leftRook.type == Rook && leftRook.moveCount == 0 && leftRook.colorId == king.colorId) {
+			for(i8 i=1;i<kingX;i++) {
+				if(GetPiece(i,kingY).type != Empty || squareInCheck(i,kingY,king.colorId)) {
+					result.left = false;
+					break;
+				}
+			}
+		}
+		if(rightRook.type == Rook && rightRook.moveCount == 0 && rightRook.colorId == king.colorId) {
+			for(i8 i=kingX+1;i<7;i++) {
+				if(GetPiece(i,kingY).type != Empty || squareInCheck(i,kingY,king.colorId)) {
+					result.right = false;
+					break;
+				}
+			}
+		}
+		return result;
+	}
+	void dumpAttacks(ColorId colorId) {
+		std::cout<<"\n";
+		for(i8 y=7;y>=0;y--) {
+			std::cout<<i32(y+1);
+			for(i8 x=0;x<8;x++) {
+				auto& attack = colorId == ColorIds[0] ? getAttack(x, y).white : getAttack(x, y).black;
+				auto& directions = attack.directions;
+				std::cout<< (getFlag(directions, AttackType::Attack::TopLeft) ? "Q" : " ");
+				std::cout<< (getFlag(directions, AttackType::Attack::TopRight) ? "E" : " ");
+				std::cout<< (getFlag(directions, AttackType::Attack::Top) ? "T" : " ");
+				std::cout<< (getFlag(directions, AttackType::Attack::BottomLeft) ? "Z" : " ");
+				std::cout<< (getFlag(directions, AttackType::Attack::BottomRight) ? "C" : " ");
+				std::cout<< (getFlag(directions, AttackType::Attack::Bottom) ? "B" : " ");
+				std::cout<< (getFlag(directions, AttackType::Attack::Left) ? "L" : " ");
+				std::cout<< (getFlag(directions, AttackType::Attack::Right) ? "R" : " ");
+				std::cout<< (attack.count > 0 ? std::to_string(attack.count) : " ");
+				std::cout<<"|";
+			}
+			std::cout<<"\n";
+		}
+		std::cout<<" ";
+		for(i8 i=0; i<8; i++) {
+			std::cout<<char('a'+i)<<"         ";
+		}
+		std::cout<<"\n";
+	}
+	void dumpBoard() {
+		dumpAttacks(ColorIds[1]);
+		dumpAttacks(ColorIds[0]);
+	}
+	void flipDirectionsVertical(u8& directions) {
+		if(getFlag(directions, AttackType::Attack::TopLeft)) {
+			disableFlag(directions, AttackType::Attack::TopLeft);
+			applyFlag(directions, AttackType::Attack::BottomLeft);
+		}
+		if(getFlag(directions, AttackType::Attack::TopRight)) {
+			disableFlag(directions, AttackType::Attack::TopRight);
+			applyFlag(directions, AttackType::Attack::BottomRight);
+		}
+		if(getFlag(directions, AttackType::Attack::Top)) {
+			disableFlag(directions, AttackType::Attack::Top);
+			applyFlag(directions, AttackType::Attack::Bottom);
+		}
+		if(getFlag(directions, AttackType::Attack::BottomLeft)) {
+			disableFlag(directions, AttackType::Attack::BottomLeft);
+			applyFlag(directions, AttackType::Attack::TopLeft);
+		}
+		if(getFlag(directions, AttackType::Attack::BottomRight)) {
+			disableFlag(directions, AttackType::Attack::BottomRight);
+			applyFlag(directions, AttackType::Attack::TopRight);
+		}
+		if(getFlag(directions, AttackType::Attack::Bottom)) {
+			disableFlag(directions, AttackType::Attack::Bottom);
+			applyFlag(directions, AttackType::Attack::Top);
+		}
+	}
+	void flipAttack(i8 x, i8 y) {
+		auto& attack = getAttack(x, y);
+		flipDirectionsVertical(attack.white.directions);
+		flipDirectionsVertical(attack.black.directions);
+	}
+	void clearBoard() {
+		board.fill(NewPiece(Empty,ColorIds[0]));
+		attacks.fill({{0,0},{0,0}});
+	}
+	void setStartBoard() {
+		clearBoard();
+		for (i8 i=0; i<8; i++) {
+			SetPiece(i, 1, NewPiece(Pawn, ColorIds[0]));
+			SetPiece(i, 6, NewPiece(Pawn, ColorIds[1]));
+		}
+		for(i8 y = 0; y<=7; y+=7){
+			SetPiece(0, y, NewPiece(Rook, y == 7 ? ColorIds[1] : ColorIds[0]));
+			SetPiece(7, y, NewPiece(Rook, y == 7 ? ColorIds[1] : ColorIds[0]));
+			SetPiece(1, y, NewPiece(Knight, y == 7 ? ColorIds[1] : ColorIds[0]));
+			SetPiece(6, y, NewPiece(Knight, y == 7 ? ColorIds[1] : ColorIds[0]));
+			SetPiece(2, y, NewPiece(Bishop, y == 7 ? ColorIds[1] : ColorIds[0]));
+			SetPiece(5, y, NewPiece(Bishop, y == 7 ? ColorIds[1] : ColorIds[0]));
+			SetPiece(3, y, NewPiece(Queen, y == 7 ? ColorIds[1] : ColorIds[0]));
+			SetPiece(4, y, NewPiece(King, y == 7 ? ColorIds[1] : ColorIds[0]));
+		}
+	}
 public:
 	bool IsValidTurn(i8 fromX, i8 fromY, i8 toX, i8 toY) {
 		if(isValidTurnNoCheck(fromX,fromY,toX,toY)) {
 			const auto& pieceFrom = GetPiece(fromX, fromY);
-			if(pieceFrom.colorId) {
-				return !inCheckIf(fromX, fromY, toX, toY, pieceFrom.colorId);
-			}else {
-				return !inCheckIf(fromX, fromY, toX, toY, pieceFrom.colorId);
-			}
+			return !inCheckIf(fromX, fromY, toX, toY, pieceFrom.colorId);
 		}
 		return false;
 	}
 	std::vector<XY> GetAllValidTurns(i8 x, i8 y) {
-		//std::cout<<i32(x)<<" "<<i32(y)<<"\n";
 		std::vector<XY> res;
 		if(GetPiece(x,y).type == Empty) {
 			return res;
@@ -533,11 +604,9 @@ public:
 			for(i8 x_=0; x_<8; x_++) {
 				if(IsValidTurn(x,y, x_, y_)) {
 					res.push_back({x_, y_});
-					//std::cout<<i32(x_)<<" "<<i32(y_)<<" ";
 				}
 			}
 		}
-		//std::cout<<"\n";
 		return res;
 	}
 	//enum MoveResultsFlags : u8{
@@ -602,10 +671,141 @@ public:
 		}
 		return res;
 	}
+	bool IsMated(ColorId colorId) { //TODO: FIX
+		return false;
+		i8 kingX = colorId == ColorIds[1] ? kingsAt.black.x : kingsAt.white.x;
+		i8 kingY = colorId == ColorIds[1] ? kingsAt.black.y : kingsAt.white.y;
+		const auto& attack =  colorId == ColorIds[1] ? getAttack(kingX, kingY).black : getAttack(kingX, kingY).white;
+		if(attack.count == 0) {
+			return false;
+		}
+
+		bool kingCanMove = !GetAllValidTurns(kingX,kingY).empty();
+		if(!squareInCheck(kingX, kingY, colorId)) {
+			return false;
+		}
+
+		if(attack.count > 1) { // more than 1 attacking piece
+			return !kingCanMove;
+		}
+		std::vector<XY> matePreventionSquares;
+		switch(attack.directions) { // here only maximum of 1 direction flag is toggled
+		case AttackType::Attack::NoDirection:
+			for(i8 y=0; y<8; y++) {
+				for(i8 x=0; x<8; x++) {
+					if(IsValidTurn(x,y,kingX,kingY)) {
+						matePreventionSquares.push_back({x,y});
+					}
+				}
+			}
+			break;
+		// go opposite side
+		case AttackType::Attack::Left:
+			for(i8 i=1; i<8; i++) {
+				const XY square = {static_cast<i8>(kingX+i), kingY};
+				const auto& piece = GetPiece(square.x, square.y);
+				matePreventionSquares.push_back(square);
+				if(piece.type != Empty && piece.colorId != colorId) {
+					break;
+				}
+			}
+			break;
+		case AttackType::Attack::TopLeft:
+			for(i8 i=1; i<8; i++) {
+				const XY square = {static_cast<i8>(kingX+i), static_cast<i8>(kingY-i)};
+				const auto& piece = GetPiece(square.x, square.y);
+				matePreventionSquares.push_back(square);
+				if(piece.type != Empty && piece.colorId != colorId) {
+					break;
+				}
+			}
+			break;
+		case AttackType::Attack::Top:
+			for(i8 i=1; i<8; i++) {
+				const XY square = {kingX, static_cast<i8>(kingY-i)};
+				const auto& piece = GetPiece(square.x, square.y);
+				matePreventionSquares.push_back(square);
+				if(piece.type != Empty && piece.colorId != colorId) {
+					break;
+				}
+			}
+			break;
+		case AttackType::Attack::TopRight:
+			for(i8 i=1; i<8; i++) {
+				const XY square = {static_cast<i8>(kingX-i), static_cast<i8>(kingY-i)};
+				const auto& piece = GetPiece(square.x, square.y);
+				matePreventionSquares.push_back(square);
+				if(piece.type != Empty && piece.colorId != colorId) {
+					break;
+				}
+			}
+			break;
+		case AttackType::Attack::Right:
+			for(i8 i=1; i<8; i++) {
+				const XY square = {static_cast<i8>(kingX-i), kingY};
+				const auto& piece = GetPiece(square.x, square.y);
+				matePreventionSquares.push_back(square);
+				if(piece.type != Empty && piece.colorId != colorId) {
+					break;
+				}
+			}
+			break;
+		case AttackType::Attack::BottomRight:
+			for(i8 i=1; i<8; i++) {
+				const XY square = {static_cast<i8>(kingX-i), static_cast<i8>(kingY+i)};
+				const auto& piece = GetPiece(square.x, square.y);
+				matePreventionSquares.push_back(square);
+				if(piece.type != Empty && piece.colorId != colorId) {
+					break;
+				}
+			}
+			break;
+		case AttackType::Attack::Bottom:
+			for(i8 i=1; i<8; i++) {
+				const XY square = {kingX, static_cast<i8>(kingY+i)};
+				const auto& piece = GetPiece(square.x, square.y);
+				matePreventionSquares.push_back(square);
+				if(piece.type != Empty && piece.colorId != colorId) {
+					break;
+				}
+			}
+			break;
+		case AttackType::Attack::BottomLeft:
+			for(i8 i=1; i<8; i++) {
+				const XY square = {static_cast<i8>(kingX+i), static_cast<i8>(kingY+i)};
+				const auto& piece = GetPiece(square.x, square.y);
+				matePreventionSquares.push_back(square);
+				if(piece.type != Empty && piece.colorId != colorId) {
+					break;
+				}
+			}
+			break;
+		}
+
+		for(i8 y=0; y<8; y++) {
+			for(i8 x=0; x<8; x++) {
+				for(auto& square: matePreventionSquares) {
+					if(IsValidTurn(y,x, square.x, square.y)) {
+						return false;
+					}
+				}
+			}
+		}
+		return true;
+	}
+	void FlipBoard() {
+		for(i8 y=0;y<4;y++) {
+			for(i8 x=0;x<8;x++) {
+				std::swap(GetPiece(x,y), GetPiece(x,7-y));
+				std::swap(getAttack(x,y), getAttack(x,7-y));
+				flipAttack(x, y); flipAttack(x, 7-y);
+			}
+		}
+	}
 	Piece& GetPiece(i8 x, i8 y) {
 		return board[y*8 + x];
 	}
-	void SetPiece(i8 x, i8 y, const Piece& piece) {
+	void SetPiece(i8 x, i8 y, const Piece& piece) { //why wont work
 		auto& lastPiece = GetPiece(x, y);
 		if(lastPiece.type == Empty) {
 			if(piece.type != Empty) {
@@ -626,14 +826,6 @@ public:
 			}else {
 				kingsAt.white.x = x;
 				kingsAt.white.y = y;
-			}
-		}
-	}
-	void FlipBoard() {
-		for(i8 y=0;y<4;y++) {
-			for(i8 x=0;x<8;x++) {
-				std::swap(GetPiece(x,y), GetPiece(x,7-y));
-				std::swap(getAttack(x,y), getAttack(x,7-y));
 			}
 		}
 	}

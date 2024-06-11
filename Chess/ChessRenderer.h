@@ -42,13 +42,10 @@ private:
 	bool flipBoard = false;
 	//bool boardFlipped = false;
 
-	enum PieceColor {
-		White,
-		Black
-	};
+	
 	u8 playerColorCount = 2;
-	u8 currPlayerColorId = 0;
-	std::unordered_map<Chess::ColorId, PieceColor> pieceColors = {{0, White}, {1, Black}};
+	Chess::ColorId currPlayerColorId = 0;
+	std::unordered_map<Chess::ColorId, PieceRender::PieceColor> pieceColors = {{0,PieceRender::White}, {1,PieceRender::Black}};
 
 	bool pieceSelected = false;
 	Chess::XY selectedPieceXY = {0,0};
@@ -68,7 +65,7 @@ private:
 
 	void renderPieceAt(const Chess::Piece& piece, SDL_Point position, SDL_Point size) {
 		//Chess::ColorId color = boardFlipped ? piece.colorId : (piece.colorId == Chess::ColorIds[0] ? Chess::ColorIds[1] : Chess::ColorIds[0]);
-		const Chess::ColorId color = pieceColors[piece.colorId];
+		const PieceRender::PieceColor color = pieceColors[piece.colorId];
 		switch(piece.type) {
 		case Chess::Pawn:
 			pawnRender.position = position;
@@ -160,7 +157,7 @@ private:
 			}
 			return;
 		}
-		if(!pieceSelected || !renderOtherColorMoves && GetPiece(selectedPieceXY.x,selectedPieceXY.y).colorId != getCurrPlayerColor()) {
+		if(!pieceSelected || !renderOtherColorMoves && GetPiece(selectedPieceXY.x,selectedPieceXY.y).colorId != currPlayerColorId) {
 			return;
 		}
 
@@ -211,24 +208,32 @@ private:
 		promotionData.centers[1].type = Chess::Knight;
 		promotionData.centers[2].type = Chess::Rook;
 		promotionData.centers[3].type = Chess::Bishop;
-		renderPiece(Chess::NewPiece(promotionData.centers[0].type, getCurrPlayerColor()), promotionData.centers[0].xy, {squareSize,squareSize});
-		renderPiece(Chess::NewPiece(promotionData.centers[1].type, getCurrPlayerColor()), promotionData.centers[1].xy, {squareSize,squareSize});
-		renderPiece(Chess::NewPiece(promotionData.centers[2].type, getCurrPlayerColor()), promotionData.centers[2].xy, {squareSize,squareSize});
-		renderPiece(Chess::NewPiece(promotionData.centers[3].type, getCurrPlayerColor()), promotionData.centers[3].xy, {squareSize,squareSize});
+		renderPiece(Chess::NewPiece(promotionData.centers[0].type, currPlayerColorId), promotionData.centers[0].xy, {squareSize,squareSize});
+		renderPiece(Chess::NewPiece(promotionData.centers[1].type, currPlayerColorId), promotionData.centers[1].xy, {squareSize,squareSize});
+		renderPiece(Chess::NewPiece(promotionData.centers[2].type, currPlayerColorId), promotionData.centers[2].xy, {squareSize,squareSize});
+		renderPiece(Chess::NewPiece(promotionData.centers[3].type, currPlayerColorId), promotionData.centers[3].xy, {squareSize,squareSize});
 	}
 	void present() {
 		SDL_RenderPresent(renderer);
 	}
-
-	Chess::ColorId getCurrPlayerColor() {
-		return pieceColors[currPlayerColorId];
+	Chess::ColorId getNextPlayerColorId() {
+		return (currPlayerColorId+1) % playerColorCount;
 	}
 	void switchPlayer() {
-		currPlayerColorId++;
-		currPlayerColorId %= playerColorCount;
+		currPlayerColorId = getNextPlayerColorId();
 		if(flipBoard) {
 			//boardFlipped = !boardFlipped;
 			chess.FlipBoard();
+		}
+	}
+
+	void concludeTurn() {
+		deselectPiece();
+		// Check for checkmate
+		if(chess.IsMated(getNextPlayerColorId())) {
+			std::cout<<"Mated\n";
+		} else{
+			switchPlayer();
 		}
 	}
 	void selectPromotion() {
@@ -238,11 +243,11 @@ private:
 		if(promotionIt != promotionData.centers.end()) {
 			chess.SetPiece(promotionData.xy.x, promotionData.xy.y, Chess::NewPiece(promotionIt->type, currPlayerColorId));
 			promotionData.promotion = false;
-			switchPlayer();
+			concludeTurn();
 		}
 	}
 	bool canPlace(i8 x, i8 y) {
-		return GetPiece(x, y).colorId == getCurrPlayerColor();
+		return GetPiece(x, y).colorId == currPlayerColorId;
 	}
 	void selectPiece() {
 		selectionCount++;
@@ -291,8 +296,7 @@ private:
 			}
 			possibleMoves.clear();
 
-			deselectPiece();
-			switchPlayer();
+			concludeTurn();
 			return true;
 		}
 		return false;
