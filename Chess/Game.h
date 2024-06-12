@@ -1,17 +1,18 @@
 #pragma once
 
 
+#include "ChessLogic.h"
 #include "ChessRenderer.h"
 
-#include <iostream>
-#include <chrono>
-#include <thread>
 
 class Game {
-    ChessRenderer chess;
+private:
+    ChessLogic chessLogic;
+    ChessRenderer chessRenderer;
 public:
     Game() {
-        chess.Init();
+        chessLogic.Init();
+        chessRenderer.Init(&chessLogic);
     }
 	void Run() {
         bool quit = false;
@@ -23,18 +24,17 @@ public:
                     quit = true;
                     break;
                 case SDL_MOUSEBUTTONDOWN:
-                    chess.MouseDown(event.button);
+                    chessLogic.MouseDown(event.button);
                     break;
                 case SDL_MOUSEBUTTONUP:
-                    chess.MouseUp(event.button);
+                    chessLogic.MouseUp(event.button);
                     break;
                 case SDL_MOUSEMOTION:
-                    chess.MouseMotion(event.motion);
+                    chessLogic.MouseMotion(event.motion);
                     break;
                 }
             }
-
-            chess.Render();
+            chessRenderer.Render();
         }
 
 	}
