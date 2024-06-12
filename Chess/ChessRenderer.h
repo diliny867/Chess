@@ -7,10 +7,10 @@
 #include "PieceRender.h"
 #include "ChessBase.h"
 
-class ChessLogic;
+
 class ChessRenderer {
 private:
-	ChessLogic* chess = nullptr;
+	class ChessLogic* chess = nullptr;
 
 	SDL_Window* window = nullptr;
 	SDL_Renderer* renderer = nullptr;

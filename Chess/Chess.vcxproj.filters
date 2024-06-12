@@ -50,8 +50,5 @@
     <ClInclude Include="ChessRenderer.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="RenderSettings.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
   </ItemGroup>
 </Project>

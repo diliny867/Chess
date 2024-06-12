@@ -4,7 +4,7 @@
 #include <unordered_map>
 
 #include "ChessLogic.h"
-#include "RenderSettings.h"
+#include "Game.h"
 
 
 void ChessRenderer::Init(ChessLogic* chessLogic){
@@ -13,7 +13,7 @@ void ChessRenderer::Init(ChessLogic* chessLogic){
 		 std::cout << "SDL_CreateWindow Error: " << SDL_GetError() << std::endl;
 	 }
 
-	 window = SDL_CreateWindow("Chess", SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED, screenSize.x, screenSize.y, SDL_WINDOW_SHOWN);
+	 window = SDL_CreateWindow("Chess", SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED, Game::screenSize.x, Game::screenSize.y, SDL_WINDOW_SHOWN);
 	 if(window == nullptr) {
 		 std::cout << "SDL_CreateWindow Error: " << SDL_GetError() << std::endl;
 	 }
@@ -37,51 +37,43 @@ void ChessRenderer::Init(ChessLogic* chessLogic){
 void ChessRenderer::renderPieceAt(const ChessBase::Piece& piece, SDL_Point position, SDL_Point size) {
 	//Chess::ColorId color = boardFlipped ? piece.colorId : (piece.colorId == Chess::ColorIds[0] ? Chess::ColorIds[1] : Chess::ColorIds[0]);
 	const PieceRender::PieceColor color = chess->pieceColors[piece.colorId];
+	PieceRender* pieceRender;
 	switch(piece.type) {
 	case ChessBase::Pawn:
-		pawnRender.position = position;
-		pawnRender.size = size;
-		pawnRender.Render(renderer, color);
+		pieceRender = &pawnRender;
 		break;
 	case ChessBase::Bishop:
-		bishopRender.position = position;
-		bishopRender.size = size;
-		bishopRender.Render(renderer, color);
+		pieceRender = &bishopRender;
 		break;
 	case ChessBase::Knight:
-		knightRender.position = position;
-		knightRender.size = size;
-		knightRender.Render(renderer, color);
+		pieceRender = &knightRender;
 		break;
 	case ChessBase::Rook:
-		rookRender.position = position;
-		rookRender.size = size;
-		rookRender.Render(renderer, color);
+		pieceRender = &rookRender;
 		break;
 	case ChessBase::King:
-		kingRender.position = position;
-		kingRender.size = size;
-		kingRender.Render(renderer, color);
+		pieceRender = &kingRender;
 		break;
 	case ChessBase::Queen:
-		queenRender.position = position;
-		queenRender.size = size;
-		queenRender.Render(renderer, color);
+		pieceRender = &queenRender;
 		break;
 	default:
-		break;
+		return;
 	}
+	pieceRender->position = position;
+	pieceRender->size = size;
+	pieceRender->Render(renderer, color);
 }
 void ChessRenderer::renderPiece(const ChessBase::Piece& piece, ChessBase::XY boardPosition, SDL_Point size) {
-	const SDL_Point position = {boardPosition.x*squareSize, (7 - boardPosition.y)*squareSize};
+	const SDL_Point position = {boardPosition.x*Game::squareSize, (7 - boardPosition.y)*Game::squareSize};
 	renderPieceAt(piece, position, size);
 }
 void ChessRenderer::renderSelectedPiece() {
-	if(!chess->mouse.left || !chess->pieceSelected) {
+	if(!Game::mouse.left || !chess->pieceSelected) {
 		return;
 	}
-	const int halfSquare = squareSize*0.5;
-	renderPieceAt(chess->GetPiece(chess->selectedPieceXY.x,chess->selectedPieceXY.y), {chess->mouse.pos.x-halfSquare, chess->mouse.pos.y-halfSquare}, {squareSize,squareSize});
+	const int halfSquare =Game::squareSize*0.5;
+	renderPieceAt(chess->GetPiece(chess->selectedPieceXY.x,chess->selectedPieceXY.y), {Game::mouse.pos.x-halfSquare, Game::mouse.pos.y-halfSquare}, {Game::squareSize,Game::squareSize});
 }
 void ChessRenderer::renderSquare(SDL_Point position, SDL_Point size, i8 r, i8 g, i8 b, i8 a) {
 	boxRGBA(renderer, position.x, position.y, position.x+size.x, position.y+size.y, r, g, b, a);
@@ -99,30 +91,30 @@ void ChessRenderer::renderBoardCircle(ChessBase::XY boardPosition, SDL_Point siz
 }
 void ChessRenderer::renderSquareSideNames() {
 	const float sideOffset = 0.12;
-	const i16 offsetLow = static_cast<i16>(static_cast<float>(squareSize)*sideOffset);
-	const i16 offsetHigh = static_cast<i16>(static_cast<float>(squareSize)*(1-sideOffset));
+	const i16 offsetLow = static_cast<i16>(static_cast<float>(Game::squareSize)*sideOffset);
+	const i16 offsetHigh = static_cast<i16>(static_cast<float>(Game::squareSize)*(1-sideOffset));
 	const float scale = 1.25;
 	const i16 gfxPrimitivesCharOffset = 3;
 	i16 coordNumberX = offsetLow - gfxPrimitivesCharOffset;
-	i16 coordNumberY = static_cast<i16>(squareSize*8) - offsetHigh - gfxPrimitivesCharOffset;
+	i16 coordNumberY = static_cast<i16>(Game::squareSize*8) - offsetHigh - gfxPrimitivesCharOffset;
 	i16 coordLetterX = offsetHigh - gfxPrimitivesCharOffset;
-	i16 coordLetterY = static_cast<i16>(squareSize*8) - offsetLow - gfxPrimitivesCharOffset;
+	i16 coordLetterY = static_cast<i16>(Game::squareSize*8) - offsetLow - gfxPrimitivesCharOffset;
 	SDL_RenderSetScale(renderer, scale, scale);
 	for(i8 i=0; i<8; i++) {
 		characterRGBA(renderer,coordNumberX/scale,coordNumberY/scale,'1'+i,0x26,0x26,0x26,SDL_ALPHA_OPAQUE);
 		characterRGBA(renderer,coordLetterX/scale,coordLetterY/scale,'a'+i,0x26,0x26,0x26,SDL_ALPHA_OPAQUE);
-		coordNumberY -= squareSize;
-		coordLetterX += squareSize;
+		coordNumberY -=Game::squareSize;
+		coordLetterX +=Game::squareSize;
 	}
 	SDL_RenderSetScale(renderer, 1, 1);
 }
 void ChessRenderer::renderPossibleMoves() {
-	ChessBase::XY pieceXY = chess->getMousePiece();
+	ChessBase::XY pieceXY = Game::GetMousePiece();
 	if(chess->promotionData.promotion) {
 		for(auto& center: chess->promotionData.centers) {
 			if(center.xy == pieceXY) {
 				//boxRGBA(renderer, pieceXY.x*squareSize, pieceXY.y*squareSize, pieceXY.x*squareSize+squareSize, pieceXY.y*squareSize+squareSize, 0x74, 0x8c, 0x6f, SDL_ALPHA_OPAQUE);
-				renderBoardSquare({pieceXY.x, pieceXY.y}, {squareSize, squareSize}, 0x74, 0x8c, 0x6f, SDL_ALPHA_OPAQUE);
+				renderBoardSquare({pieceXY.x, pieceXY.y}, {Game::squareSize,Game::squareSize}, 0x74, 0x8c, 0x6f, SDL_ALPHA_OPAQUE);
 				break;
 			}
 		}
@@ -139,10 +131,10 @@ void ChessRenderer::renderPossibleMoves() {
 			//SDL_SetRenderDrawColor(renderer, 0x71, 0x81, 0x68, SDL_ALPHA_OPAQUE*0.5);
 			//SDL_RenderFillRect(renderer, &rect);
 			//boxRGBA(renderer, pieceXY.x*squareSize, pieceXY.y*squareSize, pieceXY.x*squareSize+squareSize, pieceXY.y*squareSize+squareSize, 0x71, 0x81, 0x68, SDL_ALPHA_OPAQUE*0.5);
-			renderBoardSquare({pieceXY.x, pieceXY.y}, {squareSize, squareSize}, 0x71, 0x81, 0x68, SDL_ALPHA_OPAQUE*0.5);
+			renderBoardSquare({pieceXY.x, pieceXY.y}, {Game::squareSize,Game::squareSize}, 0x71, 0x81, 0x68, SDL_ALPHA_OPAQUE*0.5);
 		} else{
 			//filledCircleRGBA(renderer, move.x*squareSize+squareSize*0.5, move.y*squareSize+squareSize*0.5, squareSize/8, 0x71, 0x81, 0x68, SDL_ALPHA_OPAQUE*0.5);
-			renderBoardCircle({move.x, move.y}, {squareSize,squareSize}, squareSize/7, 0x71, 0x81, 0x68, SDL_ALPHA_OPAQUE*0.9);
+			renderBoardCircle({move.x, move.y}, {Game::squareSize,Game::squareSize},Game::squareSize/7, 0x71, 0x81, 0x68, SDL_ALPHA_OPAQUE*0.9);
 		}
 	}
 }
@@ -153,24 +145,24 @@ void ChessRenderer::renderBackgroundAndPieces() {
 			if((x+y)%2) {
 				//SDL_SetRenderDrawColor(renderer, 0xee, 0xee, 0xd2, SDL_ALPHA_OPAQUE);
 				//boxRGBA(renderer, x*squareSize, y*squareSize, x*squareSize+squareSize, y*squareSize+squareSize, 0xee, 0xee, 0xd2, SDL_ALPHA_OPAQUE);
-				renderBoardSquare({x, y}, {squareSize, squareSize}, 0xee, 0xee, 0xd2, SDL_ALPHA_OPAQUE);
+				renderBoardSquare({x, y}, {Game::squareSize,Game::squareSize}, 0xee, 0xee, 0xd2, SDL_ALPHA_OPAQUE);
 			}else {
 				//SDL_SetRenderDrawColor(renderer, 0x76, 0x96, 0x56, SDL_ALPHA_OPAQUE);
 				//boxRGBA(renderer, x*squareSize, y*squareSize, x*squareSize+squareSize, y*squareSize+squareSize, 0x76, 0x96, 0x56, SDL_ALPHA_OPAQUE);
-				renderBoardSquare({x, y}, {squareSize, squareSize},0x76, 0x96, 0x56, SDL_ALPHA_OPAQUE);
+				renderBoardSquare({x, y}, {Game::squareSize,Game::squareSize},0x76, 0x96, 0x56, SDL_ALPHA_OPAQUE);
 			}
 			//SDL_RenderFillRect(renderer, &rect);
 
-			if(!chess->mouse.left || chess->selectedPieceXY.x != x || chess->selectedPieceXY.y != y) {
+			if(!Game::mouse.left || chess->selectedPieceXY.x != x || chess->selectedPieceXY.y != y) {
 				//renderPiece(GetPiece(x,y), {rect.x, rect.y}, {squareSize,squareSize});
-				renderPiece(chess->GetPiece(x,y), {x, y}, {squareSize,squareSize});
+				renderPiece(chess->GetPiece(x,y), {x, y}, {Game::squareSize,Game::squareSize});
 			}
 		}
 	}
 }
 void ChessRenderer::renderPromotionChoice() {
 	//boxRGBA(renderer, 0, 0, screenSize.x, screenSize.y, 0x26, 0x26, 0x26, SDL_ALPHA_OPAQUE*0.3);
-	renderSquare({0, 0}, {screenSize.x, screenSize.y}, 0x26, 0x26, 0x26, SDL_ALPHA_OPAQUE*0.3);
+	renderSquare({0, 0}, {Game::screenSize.x,Game::screenSize.y}, 0x26, 0x26, 0x26, SDL_ALPHA_OPAQUE*0.3);
 	for(i32 i=0; i<4; i++) {
 		chess->promotionData.centers[i].xy.x = chess->promotionData.xy.x;
 		chess->promotionData.centers[i].xy.y = chess->promotionData.xy.y+i*(chess->promotionData.xy.y == 0 ? 1 : -1);
@@ -180,7 +172,7 @@ void ChessRenderer::renderPromotionChoice() {
 	chess->promotionData.centers[2].type = ChessBase::Rook;
 	chess->promotionData.centers[3].type = ChessBase::Bishop;
 	for(i32 i=0; i<4; i++) {
-		renderPiece(ChessBase::NewPiece(chess->promotionData.centers[i].type, chess->currPlayerColorId), chess->promotionData.centers[i].xy, {squareSize,squareSize});
+		renderPiece(ChessBase::NewPiece(chess->promotionData.centers[i].type, chess->currPlayerColorId), chess->promotionData.centers[i].xy, {Game::squareSize,Game::squareSize});
 	}
 }
 void ChessRenderer::present() {

@@ -16,16 +16,6 @@ class ChessLogic {
 private:
 	friend ChessRenderer;
 
-	struct Mouse {
-		struct {
-			i32 x;
-			i32 y;
-		} pos;
-		bool left;
-		bool right;
-		bool middle;
-	} mouse = {{0,0},false,false,false};
-
 	bool flipBoard = false;
 	//bool boardFlipped = false;
 	
@@ -49,28 +39,25 @@ private:
 		std::array<Choice,4> centers = {};
 	} promotionData = {false, {0,0}};
 
-	ChessBase::XY getMousePiece();
-
 	ChessBase::ColorId getNextPlayerColorId();
 	void switchPlayer();
 	void concludeTurn();
 
 	void selectPromotion(ChessBase::XY pieceXY);
+	void choosePiece(ChessBase::XY pieceXY);
+	bool placePiece(ChessBase::XY pieceXY);
 
 	bool canPlace(i8 x, i8 y);
 
-	void selectPiece();
-	void deselectPiece();
-
-	void choosePiece(ChessBase::XY pieceXY);
-	bool placePiece(ChessBase::XY pieceXY);
 	ChessBase chess;
 public:
 	void Init();
 
 	ChessBase::Piece& GetPiece(i8 x, i8 y);
 
-	void MouseDown(const SDL_MouseButtonEvent& mouseButton);
-	void MouseUp(const SDL_MouseButtonEvent& mouseButton);
-	void MouseMotion(const SDL_MouseMotionEvent& mouseMotion);
+	void CheckMouseDeselect(ChessBase::XY pieceXY);
+	void CheckMouseLeftSquare(ChessBase::XY pieceXY);
+
+	void SelectPiece(ChessBase::XY pieceXY);
+	void DeselectPiece();
 };
