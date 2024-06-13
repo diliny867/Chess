@@ -12,7 +12,6 @@ class ChessRenderer {
 private:
 	class ChessLogic* chess = nullptr;
 
-	SDL_Window* window = nullptr;
 	SDL_Renderer* renderer = nullptr;
 
 	PieceRender pawnRender;
@@ -30,13 +29,14 @@ private:
 	void renderSquare(SDL_Point position, SDL_Point size, i8 r, i8 g, i8 b, i8 a);
 	void renderBoardSquare(ChessBase::XY boardPosition, SDL_Point size, i8 r, i8 g, i8 b, i8 a);
 	void renderBoardCircle(ChessBase::XY boardPosition, SDL_Point size, i32 rad, i8 r, i8 g, i8 b, i8 a);
+	void renderCharacter(SDL_Point position, f32 scale, char c, i8 r, i8 g, i8 b, i8 a);
 	void renderSquareSideNames();
 	void renderPossibleMoves();
 	void renderBackgroundAndPieces();
 	void renderPromotionChoice();
 	void present();
 public:
-	void Init(ChessLogic* chessLogic);
+	void Init(class Game* game);
 
 	void Render();
 };

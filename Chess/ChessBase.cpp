@@ -472,7 +472,7 @@ void ChessBase::dumpBoard() {
 	dumpAttacks(ColorIds[1]);
 	dumpAttacks(ColorIds[0]);
 }
-void ChessBase::flipDirectionsVertical(u8&directions) {
+void ChessBase::flipDirectionsVertical(u8& directions) {
 	if(getFlag(directions, AT_Attack::TopLeft)) {
 		disableFlag(directions, AT_Attack::TopLeft);
 		applyFlag(directions, AT_Attack::BottomLeft);
@@ -588,25 +588,21 @@ bool ChessBase::IsMated(ColorId colorId) { //TODO: FIX
 	return false;
 	i8 kingX = colorId == ColorIds[1] ? state.kingsAt.black.x : state.kingsAt.white.x;
 	i8 kingY = colorId == ColorIds[1] ? state.kingsAt.black.y : state.kingsAt.white.y;
-	const auto& attack =  colorId == ColorIds[1] ? getAttack(kingX, kingY).black : getAttack(kingX, kingY).white;
-	if(attack.count == 0) {
-		return false;
-	}
-
-	bool kingCanMove = !GetAllValidTurns(kingX,kingY).empty();
 	if(!squareInCheck(kingX, kingY, colorId)) {
 		return false;
 	}
-
-	if(attack.count > 1) { // more than 1 attacking piece
-		return !kingCanMove;
+	const auto& attack =  colorId == ColorIds[1] ? getAttack(kingX, kingY).black : getAttack(kingX, kingY).white;
+	bool kingCanMove = !GetAllValidTurns(kingX, kingY).empty();
+	if(attack.count > 1 && !kingCanMove) { // more than 1 attacking piece
+		return true;
 	}
 	std::vector<XY> matePreventionSquares;
 	switch(attack.directions) { // here only maximum of 1 direction flag is toggled
 	case AT_Attack::NoDirection:
 		for(i8 y=0; y<8; y++) {
 			for(i8 x=0; x<8; x++) {
-				if(IsValidTurn(x,y,kingX,kingY)) {
+				const auto& piece = GetPiece(x, y);
+				if(piece.type == Empty || piece.colorId != colorId) {
 					matePreventionSquares.push_back({x,y});
 				}
 			}
@@ -697,14 +693,17 @@ bool ChessBase::IsMated(ColorId colorId) { //TODO: FIX
 
 	for(i8 y=0; y<8; y++) {
 		for(i8 x=0; x<8; x++) {
-			for(auto& square: matePreventionSquares) {
-				if(IsValidTurn(y,x, square.x, square.y)) {
-					return false;
+			const auto& piece = GetPiece(x, y);
+			if(piece.type != Empty && piece.colorId == colorId){
+				for(auto& square: matePreventionSquares) {
+					if(IsValidTurn(y, x, square.x, square.y)) {
+						return false;
+					}
 				}
 			}
 		}
 	}
-	return true;
+	return !kingCanMove;
 }
 void ChessBase::FlipBoard() {
 	for(i8 y=0;y<4;y++) {
@@ -718,7 +717,7 @@ void ChessBase::FlipBoard() {
 ChessBase::Piece& ChessBase::GetPiece(i8 x,i8 y) {
 	return state.board[y*8 + x];
 }
-void ChessBase::SetPiece(i8 x,i8 y,const Piece&piece) { //why wont work
+void ChessBase::SetPiece(i8 x,i8 y,const Piece& piece) { //why wont work
 	auto& lastPiece = GetPiece(x, y);
 	if(lastPiece.type == Empty) {
 		if(piece.type != Empty) {

@@ -10,13 +10,22 @@ private:
     ChessLogic chessLogic;
     ChessRenderer chessRenderer;
 
+    SDL_Window* window = nullptr;
+    SDL_Renderer* renderer = nullptr;
+
+    bool mouseInChessBoard() {
+        return mouse.pos.x >= boardPosition.x && mouse.pos.x <= (boardPosition.x + boardSize.x) &&
+            mouse.pos.y >= boardPosition.y && mouse.pos.y <= (boardPosition.y + boardSize.y);
+    }
     void mouseDown(const SDL_MouseButtonEvent& mouseButton) {
         mouse.left = mouseButton.button == SDL_BUTTON_LEFT ? true : mouse.left;
         mouse.right = mouseButton.button == SDL_BUTTON_RIGHT ? true : mouse.right;
         mouse.middle = mouseButton.button == SDL_BUTTON_MIDDLE ? true : mouse.middle;
 
         if(mouseButton.button == SDL_BUTTON_LEFT) {
-            chessLogic.SelectPiece(GetMousePiece());
+            if(mouseInChessBoard()){
+                chessLogic.SelectPiece(GetMousePiece());
+            }
         }
         if(mouseButton.button == SDL_BUTTON_RIGHT) {
             chessLogic.DeselectPiece();
@@ -37,9 +46,29 @@ private:
 
         chessLogic.CheckMouseLeftSquare(GetMousePiece());
     }
+    void initWindow() {
+        if (SDL_Init(SDL_INIT_EVERYTHING) != 0) {
+            std::cout << "SDL_CreateWindow Error: " << SDL_GetError() << std::endl;
+        }
+
+        window = SDL_CreateWindow("Chess", SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED, Game::windowSize.x, Game::windowSize.y, SDL_WINDOW_SHOWN);
+        if(window == nullptr) {
+            std::cout << "SDL_CreateWindow Error: " << SDL_GetError() << std::endl;
+        }
+
+        renderer = SDL_CreateRenderer(Game::window, -1, SDL_RENDERER_ACCELERATED | SDL_RENDERER_PRESENTVSYNC);
+        if (renderer == nullptr) {
+            std::cout << "SDL_CreateRenderer Error: " << SDL_GetError() << std::endl;
+        }
+
+        SDL_SetHint(SDL_HINT_RENDER_SCALE_QUALITY, "2");
+
+    }
 public:
-    inline static constexpr int squareSize = 80;
-    inline static constexpr SDL_Point screenSize = {640, 640};
+    inline static constexpr SDL_Point windowSize = {640,640};
+    inline static constexpr SDL_Point boardPosition = {0,0};
+    inline static constexpr SDL_Point boardSize = {640, 640};
+    inline static constexpr i32 squareSize = boardSize.x/8;
 
     struct Mouse {
         struct {
@@ -52,12 +81,22 @@ public:
     };
     inline static Mouse mouse ={{0,0},false,false,false};
     inline static ChessBase::XY GetMousePiece() {
-        return {static_cast<i8>(mouse.pos.x/squareSize), static_cast<i8>((screenSize.y - mouse.pos.y)/squareSize)};
+        return {static_cast<i8>((mouse.pos.x - boardPosition.x)/squareSize), static_cast<i8>((boardSize.y - mouse.pos.y + boardPosition.y)/squareSize)};
     }
 
     Game() {
+        initWindow();
         chessLogic.Init();
-        chessRenderer.Init(&chessLogic);
+        chessRenderer.Init(this);
+    }
+    ChessLogic* GetChessLogic() {
+        return &chessLogic;
+    }
+    SDL_Window* GetWindow() {
+        return window;
+    }
+    SDL_Renderer* GetRenderer() {
+        return renderer;
     }
 	void Run() {
         bool quit = false;

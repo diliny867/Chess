@@ -3,34 +3,19 @@
 #include <iostream>
 #include <unordered_map>
 
-#include "ChessLogic.h"
 #include "Game.h"
 
 
-void ChessRenderer::Init(ChessLogic* chessLogic){
-	 chess = chessLogic;
-	 if (SDL_Init(SDL_INIT_EVERYTHING) != 0) {
-		 std::cout << "SDL_CreateWindow Error: " << SDL_GetError() << std::endl;
-	 }
+void ChessRenderer::Init(Game* game){
+	chess = game->GetChessLogic();
+	renderer = game->GetRenderer();
 
-	 window = SDL_CreateWindow("Chess", SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED, Game::screenSize.x, Game::screenSize.y, SDL_WINDOW_SHOWN);
-	 if(window == nullptr) {
-		 std::cout << "SDL_CreateWindow Error: " << SDL_GetError() << std::endl;
-	 }
-
-	 renderer = SDL_CreateRenderer(window, -1, SDL_RENDERER_ACCELERATED | SDL_RENDERER_PRESENTVSYNC);
-	 if (renderer == nullptr) {
-		 std::cout << "SDL_CreateRenderer Error: " << SDL_GetError() << std::endl;
-	 }
-
-	 SDL_SetHint(SDL_HINT_RENDER_SCALE_QUALITY, "2");
-
-	 pawnRender.Init(renderer, "res/black-pawn.png", "res/white-pawn.png");
-	 bishopRender.Init(renderer, "res/black-bishop.png", "res/white-bishop.png");
-	 knightRender.Init(renderer, "res/black-knight.png", "res/white-knight.png");
-	 rookRender.Init(renderer, "res/black-rook.png", "res/white-rook.png");
-	 kingRender.Init(renderer, "res/black-king.png", "res/white-king.png");
-	 queenRender.Init(renderer, "res/black-queen.png", "res/white-queen.png");
+	pawnRender.Init(renderer, "res/black-pawn.png", "res/white-pawn.png");
+	bishopRender.Init(renderer, "res/black-bishop.png", "res/white-bishop.png");
+	knightRender.Init(renderer, "res/black-knight.png", "res/white-knight.png");
+	rookRender.Init(renderer, "res/black-rook.png", "res/white-rook.png");
+	kingRender.Init(renderer, "res/black-king.png", "res/white-king.png");
+	queenRender.Init(renderer, "res/black-queen.png", "res/white-queen.png");
 
 }
 
@@ -65,18 +50,18 @@ void ChessRenderer::renderPieceAt(const ChessBase::Piece& piece, SDL_Point posit
 	pieceRender->Render(renderer, color);
 }
 void ChessRenderer::renderPiece(const ChessBase::Piece& piece, ChessBase::XY boardPosition, SDL_Point size) {
-	const SDL_Point position = {boardPosition.x*Game::squareSize, (7 - boardPosition.y)*Game::squareSize};
+	const SDL_Point position = {Game::boardPosition.x + boardPosition.x*Game::squareSize, Game::boardPosition.y +  (7 - boardPosition.y)*Game::squareSize};
 	renderPieceAt(piece, position, size);
 }
 void ChessRenderer::renderSelectedPiece() {
 	if(!Game::mouse.left || !chess->pieceSelected) {
 		return;
 	}
-	const int halfSquare =Game::squareSize*0.5;
+	const int halfSquare = Game::squareSize*0.5;
 	renderPieceAt(chess->GetPiece(chess->selectedPieceXY.x,chess->selectedPieceXY.y), {Game::mouse.pos.x-halfSquare, Game::mouse.pos.y-halfSquare}, {Game::squareSize,Game::squareSize});
 }
 void ChessRenderer::renderSquare(SDL_Point position, SDL_Point size, i8 r, i8 g, i8 b, i8 a) {
-	boxRGBA(renderer, position.x, position.y, position.x+size.x, position.y+size.y, r, g, b, a);
+	boxRGBA(renderer, Game::boardPosition.x+position.x, Game::boardPosition.y+position.y, Game::boardPosition.x+position.x+size.x, Game::boardPosition.y+position.y+size.y, r, g, b, a);
 }
 void ChessRenderer::renderBoardSquare(ChessBase::XY boardPosition, SDL_Point size, i8 r, i8 g, i8 b, i8 a) {
 	i16 positionX = boardPosition.x*size.x;
@@ -87,7 +72,12 @@ void ChessRenderer::renderBoardSquare(ChessBase::XY boardPosition, SDL_Point siz
 void ChessRenderer::renderBoardCircle(ChessBase::XY boardPosition, SDL_Point size, i32 rad, i8 r, i8 g, i8 b, i8 a) {
 	i16 positionX = boardPosition.x*size.x+size.x*0.5;
 	i16 positionY = (7 - boardPosition.y)*size.y+size.y*0.5;
-	filledCircleRGBA(renderer, positionX, positionY, rad, r, g, b, a);
+	filledCircleRGBA(renderer, Game::boardPosition.x+positionX, Game::boardPosition.y+positionY, rad, r, g, b, a);
+}
+void ChessRenderer::renderCharacter(SDL_Point position, f32 scale, char c, i8 r, i8 g, i8 b, i8 a) {
+	SDL_RenderSetScale(renderer, scale, scale);
+	characterRGBA(renderer, (Game::boardPosition.x + position.x)/scale, (Game::boardPosition.y + position.y)/scale, c, r, g, b, a);
+	SDL_RenderSetScale(renderer, 1, 1);
 }
 void ChessRenderer::renderSquareSideNames() {
 	const float sideOffset = 0.12;
@@ -99,14 +89,13 @@ void ChessRenderer::renderSquareSideNames() {
 	i16 coordNumberY = static_cast<i16>(Game::squareSize*8) - offsetHigh - gfxPrimitivesCharOffset;
 	i16 coordLetterX = offsetHigh - gfxPrimitivesCharOffset;
 	i16 coordLetterY = static_cast<i16>(Game::squareSize*8) - offsetLow - gfxPrimitivesCharOffset;
-	SDL_RenderSetScale(renderer, scale, scale);
+	
 	for(i8 i=0; i<8; i++) {
-		characterRGBA(renderer,coordNumberX/scale,coordNumberY/scale,'1'+i,0x26,0x26,0x26,SDL_ALPHA_OPAQUE);
-		characterRGBA(renderer,coordLetterX/scale,coordLetterY/scale,'a'+i,0x26,0x26,0x26,SDL_ALPHA_OPAQUE);
-		coordNumberY -=Game::squareSize;
-		coordLetterX +=Game::squareSize;
+		renderCharacter({coordNumberX,coordNumberY}, scale, '1'+i, 0x26, 0x26, 0x26, SDL_ALPHA_OPAQUE);
+		renderCharacter({coordLetterX,coordLetterY}, scale, 'a'+i, 0x26, 0x26, 0x26, SDL_ALPHA_OPAQUE);
+		coordNumberY -= Game::squareSize;
+		coordLetterX += Game::squareSize;
 	}
-	SDL_RenderSetScale(renderer, 1, 1);
 }
 void ChessRenderer::renderPossibleMoves() {
 	ChessBase::XY pieceXY = Game::GetMousePiece();
@@ -162,7 +151,7 @@ void ChessRenderer::renderBackgroundAndPieces() {
 }
 void ChessRenderer::renderPromotionChoice() {
 	//boxRGBA(renderer, 0, 0, screenSize.x, screenSize.y, 0x26, 0x26, 0x26, SDL_ALPHA_OPAQUE*0.3);
-	renderSquare({0, 0}, {Game::screenSize.x,Game::screenSize.y}, 0x26, 0x26, 0x26, SDL_ALPHA_OPAQUE*0.3);
+	renderSquare({0, 0}, {Game::boardSize.x,Game::boardSize.y}, 0x26, 0x26, 0x26, SDL_ALPHA_OPAQUE*0.3);
 	for(i32 i=0; i<4; i++) {
 		chess->promotionData.centers[i].xy.x = chess->promotionData.xy.x;
 		chess->promotionData.centers[i].xy.y = chess->promotionData.xy.y+i*(chess->promotionData.xy.y == 0 ? 1 : -1);
