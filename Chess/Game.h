@@ -3,12 +3,14 @@
 
 #include "ChessLogic.h"
 #include "ChessRenderer.h"
+#include "MenuRenderer.h"
 
 
 class Game {
 private:
     ChessLogic chessLogic;
     ChessRenderer chessRenderer;
+    MenuRenderer menuRenderer;
 
     SDL_Window* window = nullptr;
     SDL_Renderer* renderer = nullptr;
@@ -48,7 +50,7 @@ private:
     }
     void initWindow() {
         if (SDL_Init(SDL_INIT_EVERYTHING) != 0) {
-            std::cout << "SDL_CreateWindow Error: " << SDL_GetError() << std::endl;
+            std::cout << "SDL_Init Error: " << SDL_GetError() << std::endl;
         }
 
         window = SDL_CreateWindow("Chess", SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED, Game::windowSize.x, Game::windowSize.y, SDL_WINDOW_SHOWN);
@@ -65,10 +67,13 @@ private:
 
     }
 public:
-    inline static constexpr SDL_Point windowSize = {640,640};
-    inline static constexpr SDL_Point boardPosition = {0,0};
+    inline static constexpr SDL_Point menuSize = {100, 640};
     inline static constexpr SDL_Point boardSize = {640, 640};
+    inline static constexpr SDL_Point boardPosition = {0,0};
+    inline static constexpr SDL_Point menuPosition = {boardSize.x,0};
     inline static constexpr i32 squareSize = boardSize.x/8;
+    inline static constexpr SDL_Point windowSize = {std::max(menuPosition.x+menuSize.x, boardPosition.x+boardSize.x),
+    	std::max(menuPosition.y+menuSize.y, boardPosition.y+boardSize.y)};
 
     struct Mouse {
         struct {
@@ -81,13 +86,18 @@ public:
     };
     inline static Mouse mouse ={{0,0},false,false,false};
     inline static ChessBase::XY GetMousePiece() {
-        return {static_cast<i8>((mouse.pos.x - boardPosition.x)/squareSize), static_cast<i8>((boardSize.y - mouse.pos.y + boardPosition.y)/squareSize)};
+        auto relative = GetMouseRelative(boardPosition);
+        return {static_cast<i8>((relative.x)/squareSize), static_cast<i8>((boardSize.y - relative.y)/squareSize)};
+    }
+    inline static SDL_Point GetMouseRelative(SDL_Point position) {
+        return {mouse.pos.x - position.x, mouse.pos.y - position.y};
     }
 
     Game() {
         initWindow();
         chessLogic.Init();
-        chessRenderer.Init(this);
+        chessRenderer.Init(this, boardSize);
+        menuRenderer.Init(this, menuSize);
     }
     ChessLogic* GetChessLogic() {
         return &chessLogic;
@@ -118,7 +128,8 @@ public:
                     break;
                 }
             }
-            chessRenderer.Render();
+            chessRenderer.Render(renderer, boardPosition, boardSize);
+            menuRenderer.Render(renderer, menuPosition, menuSize);
         }
 
 	}

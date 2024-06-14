@@ -142,16 +142,20 @@
     <ClCompile Include="ChessBase.cpp" />
     <ClCompile Include="ChessLogic.cpp" />
     <ClCompile Include="ChessRenderer.cpp" />
+    <ClCompile Include="MenuRenderer.cpp" />
+    <ClCompile Include="GameSectionRenderer.cpp" />
     <ClCompile Include="Source.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="ChessBase.h" />
+    <ClInclude Include="MenuRenderer.h" />
     <ClInclude Include="ChessRenderer.h" />
     <ClInclude Include="Common.h" />
     <ClInclude Include="Game.h" />
     <ClInclude Include="ChessLogic.h" />
     <ClInclude Include="Image.h" />
     <ClInclude Include="PieceRender.h" />
+    <ClInclude Include="GameSectionRenderer.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
