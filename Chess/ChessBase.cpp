@@ -310,7 +310,7 @@ bool ChessBase::isValidTurnNoCheck(i8 fromX,i8 fromY,i8 toX,i8 toY) {
 					return true;
 				}
 				if(lastMove.to.x == toX && lastMove.piece.type == Pawn && lastMove.piece.colorId != pieceFrom.colorId && std::abs(lastMove.to.y - lastMove.from.y) == 2 
-					&& (pieceFrom.colorId  == ColorIds[0] && fromY == 4 || pieceFrom.colorId  == ColorIds[0] && fromY == 3)) { //en passant
+					&& (pieceFrom.colorId == ColorIds[0] && fromY == 4 || pieceFrom.colorId != ColorIds[0] && fromY == 3)) { //en passant
 					return true;
 				}
 			}

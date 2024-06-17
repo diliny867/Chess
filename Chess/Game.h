@@ -67,7 +67,7 @@ private:
 
     }
 public:
-    inline static constexpr SDL_Point menuSize = {100, 640};
+    inline static constexpr SDL_Point menuSize = {0, 640};
     inline static constexpr SDL_Point boardSize = {640, 640};
     inline static constexpr SDL_Point boardPosition = {0,0};
     inline static constexpr SDL_Point menuPosition = {boardSize.x,0};
@@ -85,19 +85,19 @@ public:
         bool middle;
     };
     inline static Mouse mouse ={{0,0},false,false,false};
-    inline static ChessBase::XY GetMousePiece() {
-        auto relative = GetMouseRelative(boardPosition);
-        return {static_cast<i8>((relative.x)/squareSize), static_cast<i8>((boardSize.y - relative.y)/squareSize)};
-    }
     inline static SDL_Point GetMouseRelative(SDL_Point position) {
         return {mouse.pos.x - position.x, mouse.pos.y - position.y};
+    }
+    inline static ChessBase::XY GetMousePiece() {
+        const auto relative = GetMouseRelative(boardPosition);
+        return {static_cast<i8>(relative.x/squareSize), static_cast<i8>((boardSize.y - relative.y)/squareSize)};
     }
 
     Game() {
         initWindow();
         chessLogic.Init();
         chessRenderer.Init(this, boardSize);
-        menuRenderer.Init(this, menuSize);
+        //menuRenderer.Init(this, menuSize);
     }
     ChessLogic* GetChessLogic() {
         return &chessLogic;
@@ -129,7 +129,7 @@ public:
                 }
             }
             chessRenderer.Render(renderer, boardPosition, boardSize);
-            menuRenderer.Render(renderer, menuPosition, menuSize);
+            //menuRenderer.Render(renderer, menuPosition, menuSize);
         }
 
 	}

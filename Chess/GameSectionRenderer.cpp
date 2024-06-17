@@ -16,12 +16,24 @@ void GameSectionRenderer::renderCharacter(SDL_Point position, f32 scale, char c,
 	SDL_RenderSetScale(currRenderer, 1, 1);
 }
 
-void GameSectionRenderer::init(SDL_Renderer* renderer, SDL_Point size) {
-	currRenderer = renderer;
+void GameSectionRenderer::clear() {
+	SDL_SetRenderDrawColor(currRenderer, 0x00, 0x00, 0x00, SDL_ALPHA_OPAQUE);
+	SDL_RenderClear(currRenderer);
+}
+
+void GameSectionRenderer::resetTexture(SDL_Point size) {
+	if(renderTargetTexture != nullptr) {
+		SDL_DestroyTexture(renderTargetTexture);
+	}
 	renderTargetTexture = SDL_CreateTexture(currRenderer, SDL_PIXELFORMAT_RGBA8888, SDL_TEXTUREACCESS_TARGET, size.x, size.y);
 	if (renderTargetTexture == NULL) {
 		std::cout << "SDL_CreateTexture Error: " << SDL_GetError() << std::endl;
 	}
+}
+
+void GameSectionRenderer::init(SDL_Renderer* renderer, SDL_Point size) {
+	currRenderer = renderer;
+	resetTexture(size);
 }
 
 void GameSectionRenderer::initRender(SDL_Renderer* renderer/*, SDL_Point position, SDL_Point size*/) {
@@ -29,6 +41,7 @@ void GameSectionRenderer::initRender(SDL_Renderer* renderer/*, SDL_Point positio
 	//onScreenPosition = position;
 	//onScreenSize = size;
 	SDL_SetRenderTarget(currRenderer, renderTargetTexture);
+	clear();
 }
 void GameSectionRenderer::present(SDL_Point position, SDL_Point size) {
 	SDL_Rect rect = {position.x, position.y, size.x, size.y};
@@ -41,6 +54,12 @@ void GameSectionRenderer::Init(Game* game, SDL_Point size) {
 	init(game->GetRenderer(), size);
 
 }
+
+void GameSectionRenderer::ResetSize(SDL_Renderer* renderer, SDL_Point size) {
+	currRenderer = renderer;
+	resetTexture(size);
+}
+
 void GameSectionRenderer::Render(SDL_Renderer* renderer, SDL_Point position, SDL_Point size) {
 	initRender(renderer/*, position, size*/);
 
