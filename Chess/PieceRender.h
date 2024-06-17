@@ -8,8 +8,8 @@ private:
 	Image blackImg;
 	Image whiteImg;
 public:
-	SDL_Point position = {0,0};
-	SDL_Point size = {0,0};
+	i32Vec2 position = {0,0};
+	i32Vec2 size = {0,0};
 
 	enum PieceColor {
 		White,

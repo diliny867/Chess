@@ -12,6 +12,8 @@ private:
     ChessRenderer chessRenderer;
     MenuRenderer menuRenderer;
 
+    inline static Game* gameInstance = nullptr;
+
     SDL_Window* window = nullptr;
     SDL_Renderer* renderer = nullptr;
 
@@ -67,12 +69,12 @@ private:
 
     }
 public:
-    inline static constexpr SDL_Point menuSize = {0, 640};
-    inline static constexpr SDL_Point boardSize = {640, 640};
-    inline static constexpr SDL_Point boardPosition = {0,0};
-    inline static constexpr SDL_Point menuPosition = {boardSize.x,0};
+    inline static constexpr i32Vec2 menuSize = {0, 640};
+    inline static constexpr i32Vec2 boardSize = {640, 640};
+    inline static constexpr i32Vec2 boardPosition = {0,0};
+    inline static constexpr i32Vec2 menuPosition = {boardSize.x,0};
     inline static constexpr i32 squareSize = boardSize.x/8;
-    inline static constexpr SDL_Point windowSize = {std::max(menuPosition.x+menuSize.x, boardPosition.x+boardSize.x),
+    inline static constexpr i32Vec2 windowSize = {std::max(menuPosition.x+menuSize.x, boardPosition.x+boardSize.x),
     	std::max(menuPosition.y+menuSize.y, boardPosition.y+boardSize.y)};
 
     struct Mouse {
@@ -85,19 +87,30 @@ public:
         bool middle;
     };
     inline static Mouse mouse ={{0,0},false,false,false};
-    inline static SDL_Point GetMouseRelative(SDL_Point position) {
+    inline static i32Vec2 GetMouseRelative(i32Vec2 position) {
         return {mouse.pos.x - position.x, mouse.pos.y - position.y};
     }
-    inline static ChessBase::XY GetMousePiece() {
-        const auto relative = GetMouseRelative(boardPosition);
-        return {static_cast<i8>(relative.x/squareSize), static_cast<i8>((boardSize.y - relative.y)/squareSize)};
+    ChessBase::XY GetMousePiece() {
+        const auto relative = Game::GetMouseRelative(Game::boardPosition);
+        return {static_cast<i8>(relative.x/Game::squareSize),
+            static_cast<i8>(((chessRenderer.IsBoardFlipped() && chessLogic.GetCurrentPlayerColor() != PieceRender::White) ? relative.y : Game::boardSize.y - relative.y)/Game::squareSize)};
+    }
+
+    static Game* GetCurrentGame() {
+        return gameInstance;
     }
 
     Game() {
+        gameInstance = this;
         initWindow();
         chessLogic.Init();
-        chessRenderer.Init(this, boardSize);
-        //menuRenderer.Init(this, menuSize);
+        chessRenderer.Init(boardSize);
+        //menuRenderer.Init(menuSize);
+        chessLogic.SetTurnChangeCallback([&]() {
+            if(chessRenderer.FlipBoardOnTurn()) {
+                chessRenderer.FlipBoard();
+            }
+        });
     }
     ChessLogic* GetChessLogic() {
         return &chessLogic;

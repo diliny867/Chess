@@ -4,12 +4,13 @@
 
 #include "Game.h"
 
-void MenuRenderer::Init(Game* game, SDL_Point size) {
+void MenuRenderer::Init(i32Vec2 size) {
+	Game* game = Game::GetCurrentGame();
 	init(game->GetRenderer(),size);
 	chess = game->GetChessLogic();
 
 }
-void MenuRenderer::Render(SDL_Renderer* renderer, SDL_Point position, SDL_Point size) {
+void MenuRenderer::Render(SDL_Renderer* renderer, i32Vec2 position, i32Vec2 size) {
 	initRender(renderer);
 
 	present(position,size);

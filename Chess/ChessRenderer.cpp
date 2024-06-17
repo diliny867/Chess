@@ -8,7 +8,8 @@
 #include "Game.h"
 
 
-void ChessRenderer::Init(Game* game, SDL_Point size){
+void ChessRenderer::Init(i32Vec2 size){
+	Game* game = Game::GetCurrentGame();
 	init(game->GetRenderer(),size);
 	chess = game->GetChessLogic();
 	currRenderer = game->GetRenderer();
@@ -21,7 +22,20 @@ void ChessRenderer::Init(Game* game, SDL_Point size){
 	queenRender.Init(currRenderer, "res/black-queen.png", "res/white-queen.png");
 }
 
-void ChessRenderer::renderPieceAt(const ChessBase::Piece& piece, SDL_Point position, SDL_Point size) {
+void ChessRenderer::SetFlipBoardOnTurn(bool flip) {
+	flipBoard = flip;
+}
+bool ChessRenderer::FlipBoardOnTurn() {
+	return flipBoard;
+}
+void ChessRenderer::FlipBoard() {
+	boardFlipped = !boardFlipped;
+}
+bool ChessRenderer::IsBoardFlipped() {
+	return boardFlipped;
+}
+
+void ChessRenderer::renderPieceAt(const ChessBase::Piece& piece, i32Vec2 position, i32Vec2 size) {
 	//Chess::ColorId color = boardFlipped ? piece.colorId : (piece.colorId == Chess::ColorIds[0] ? Chess::ColorIds[1] : Chess::ColorIds[0]);
 	const PieceRender::PieceColor color = chess->pieceColors[piece.colorId];
 	PieceRender* pieceRender;
@@ -51,8 +65,9 @@ void ChessRenderer::renderPieceAt(const ChessBase::Piece& piece, SDL_Point posit
 	pieceRender->size = size;
 	pieceRender->Render(currRenderer, color);
 }
-void ChessRenderer::renderPiece(const ChessBase::Piece& piece, ChessBase::XY boardPosition, SDL_Point size) {
-	const SDL_Point position = {boardPosition.x*Game::squareSize, (7 - boardPosition.y)*Game::squareSize};
+void ChessRenderer::renderPiece(const ChessBase::Piece& piece, ChessBase::XY onBoardPosition, i32Vec2 size) {
+	const i16 y = IsBoardFlipped() ? onBoardPosition.y : (7 - onBoardPosition.y);
+	const i32Vec2 position = {onBoardPosition.x*Game::squareSize, y*Game::squareSize};
 	renderPieceAt(piece, position, size);
 }
 void ChessRenderer::renderSelectedPiece() {
@@ -63,15 +78,15 @@ void ChessRenderer::renderSelectedPiece() {
 	const auto mousePos = Game::GetMouseRelative(Game::boardPosition);
 	renderPieceAt(chess->GetPiece(chess->selectedPieceXY.x,chess->selectedPieceXY.y), {mousePos.x-halfSquare, mousePos.y-halfSquare}, {Game::squareSize,Game::squareSize});
 }
-void ChessRenderer::renderBoardSquare(ChessBase::XY boardPosition, SDL_Point size, i8 r, i8 g, i8 b, i8 a) {
-	i16 positionX = boardPosition.x*size.x;
-	i16 positionY = (7 - boardPosition.y)*size.y;
-	renderSquare({positionX, positionY}, size, r, g, b, a);
+void ChessRenderer::renderBoardSquare(ChessBase::XY onBoardPosition, i32Vec2 size, i8 r, i8 g, i8 b, i8 a) {
+	const i16 positionX = onBoardPosition.x;
+	const i16 positionY = IsBoardFlipped() ? onBoardPosition.y : (7 - onBoardPosition.y);
+	renderSquare({positionX*size.x, positionY*size.y}, size, r, g, b, a);
 }
-void ChessRenderer::renderBoardCircle(ChessBase::XY boardPosition, SDL_Point size, i32 rad, i8 r, i8 g, i8 b, i8 a) {
-	i32 positionX = boardPosition.x*size.x+size.x*0.5;
-	i32 positionY = (7 - boardPosition.y)*size.y+size.y*0.5;
-	renderCircle({positionX, positionY}, rad, r, g, b, a);
+void ChessRenderer::renderBoardCircle(ChessBase::XY onBoardPosition, i32Vec2 size, i32 rad, i8 r, i8 g, i8 b, i8 a) {
+	const i16 positionX = onBoardPosition.x;
+	const i16 positionY = IsBoardFlipped() ? onBoardPosition.y : (7 - onBoardPosition.y);
+	renderCircle({positionX*size.x+size.x/2, positionY*size.y+size.y/2}, rad, r, g, b, a);
 }
 void ChessRenderer::renderSquareSideNames() {
 	const float sideOffset = 0.12;
@@ -85,14 +100,14 @@ void ChessRenderer::renderSquareSideNames() {
 	i16 coordLetterY = static_cast<i16>(Game::squareSize*8) - offsetLow - gfxPrimitivesCharOffset;
 	
 	for(i8 i=0; i<8; i++) {
-		renderCharacter({coordNumberX,coordNumberY}, scale, '1'+i, 0x26, 0x26, 0x26, SDL_ALPHA_OPAQUE);
+		renderCharacter({coordNumberX,coordNumberY}, scale, IsBoardFlipped() ? '8'-i : '1'+i, 0x26, 0x26, 0x26, SDL_ALPHA_OPAQUE);
 		renderCharacter({coordLetterX,coordLetterY}, scale, 'a'+i, 0x26, 0x26, 0x26, SDL_ALPHA_OPAQUE);
 		coordNumberY -= Game::squareSize;
 		coordLetterX += Game::squareSize;
 	}
 }
 void ChessRenderer::renderPossibleMoves() {
-	ChessBase::XY pieceXY = Game::GetMousePiece();
+	ChessBase::XY pieceXY = Game::GetCurrentGame()->GetMousePiece();
 	if(chess->promotionData.promotion) {
 		for(auto& center: chess->promotionData.centers) {
 			if(center.xy == pieceXY) {
@@ -144,7 +159,7 @@ void ChessRenderer::renderPromotionChoice() {
 	}
 }
 
-void ChessRenderer::Render(SDL_Renderer* renderer, SDL_Point position, SDL_Point size) {
+void ChessRenderer::Render(SDL_Renderer* renderer, i32Vec2 position, i32Vec2 size) {
 	initRender(renderer);
 	renderBackgroundAndPieces();
 	renderPossibleMoves();

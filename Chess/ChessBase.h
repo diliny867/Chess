@@ -26,12 +26,7 @@ public:
 		ColorId colorId = ColorIds[0];
 		u32 moveCount = 0;
 	};
-	struct XY{
-		i8 x;
-		i8 y;
-		inline bool operator==(const XY& rhs) { return x == rhs.x && y == rhs.y; }
-		inline bool operator!=(const XY& rhs) { return !(*this == rhs); }
-	};
+	typedef i8Vec2 XY;
 	static Piece NewPiece(PieceType type, ColorId colorId);
 private:
 	struct {

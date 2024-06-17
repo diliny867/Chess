@@ -9,8 +9,8 @@ private:
 	class ChessLogic* chess = nullptr;
 
 public:
-	void Init(class Game* game, SDL_Point size) override;
+	void Init(i32Vec2 size) override;
 
-	void Render(SDL_Renderer* renderer, SDL_Point position, SDL_Point size) override;
+	void Render(SDL_Renderer* renderer, i32Vec2 position, i32Vec2 size) override;
 };
 

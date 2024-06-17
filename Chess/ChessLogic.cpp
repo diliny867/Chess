@@ -6,10 +6,7 @@ ChessBase::ColorId ChessLogic::getNextPlayerColorId() {
 }
 void ChessLogic::switchPlayer() {
 	currPlayerColorId = getNextPlayerColorId();
-	if(flipBoard) {
-		//boardFlipped = !boardFlipped;
-		chess.FlipBoard();
-	}
+	turnChangeCallback();
 }
 void ChessLogic::concludeTurn() {
 	DeselectPiece();
@@ -103,6 +100,15 @@ void ChessLogic::DeselectPiece() {
 void ChessLogic::Init() {
 	chess.Reset();
 }
+
+void ChessLogic::SetTurnChangeCallback(const std::function<void()>& callback) {
+	turnChangeCallback = callback;
+}
+
+PieceRender::PieceColor ChessLogic::GetCurrentPlayerColor() {
+	return pieceColors[currPlayerColorId];
+}
+
 ChessBase::Piece& ChessLogic::GetPiece(i8 x, i8 y) {
 	return chess.GetPiece(x, y);
 }

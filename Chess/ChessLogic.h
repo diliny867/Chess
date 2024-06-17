@@ -6,6 +6,7 @@
 
 #include <iostream>
 #include <unordered_map>
+#include <functional>
 
 #include "PieceRender.h"
 #include "ChessBase.h"
@@ -15,13 +16,12 @@
 class ChessLogic {
 private:
 	friend ChessRenderer;
-
-	bool flipBoard = false;
-	//bool boardFlipped = false;
 	
 	u8 playerColorCount = 2;
 	ChessBase::ColorId currPlayerColorId = 0;
 	std::unordered_map<ChessBase::ColorId, PieceRender::PieceColor> pieceColors = {{0,PieceRender::White}, {1,PieceRender::Black}};
+
+	std::function<void()> turnChangeCallback;
 
 	bool pieceSelected = false;
 	ChessBase::XY selectedPieceXY = {0,0};
@@ -52,6 +52,10 @@ private:
 	ChessBase chess;
 public:
 	void Init();
+
+	void SetTurnChangeCallback(const std::function<void()>& callback);
+
+	PieceRender::PieceColor GetCurrentPlayerColor();
 
 	ChessBase::Piece& GetPiece(i8 x, i8 y);
 
