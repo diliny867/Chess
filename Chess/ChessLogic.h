@@ -10,12 +10,11 @@
 
 #include "PieceRender.h"
 #include "ChessBase.h"
-#include "ChessRenderer.h"
 
 
 class ChessLogic {
 private:
-	friend ChessRenderer;
+	friend class ChessRenderer;
 	
 	u8 playerColorCount = 2;
 	ChessBase::ColorId currPlayerColorId = 0;

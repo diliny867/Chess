@@ -16,8 +16,8 @@ void GameSectionRenderer::renderCharacter(i32Vec2 position, f32 scale, char c, i
 	SDL_RenderSetScale(currRenderer, 1, 1);
 }
 
-void GameSectionRenderer::clear() {
-	SDL_SetRenderDrawColor(currRenderer, 0x00, 0x00, 0x00, SDL_ALPHA_OPAQUE);
+void GameSectionRenderer::clear(i8 r, i8 g, i8 b, i8 a) {
+	SDL_SetRenderDrawColor(currRenderer,r,g,b,a);
 	SDL_RenderClear(currRenderer);
 }
 
@@ -41,7 +41,6 @@ void GameSectionRenderer::initRender(SDL_Renderer* renderer/*, i32Vec2 position,
 	//onScreenPosition = position;
 	//onScreenSize = size;
 	SDL_SetRenderTarget(currRenderer, renderTargetTexture);
-	clear();
 }
 void GameSectionRenderer::present(i32Vec2 position, i32Vec2 size) {
 	SDL_Rect rect = {position.x, position.y, size.x, size.y};

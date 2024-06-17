@@ -3,13 +3,16 @@
 
 #include "ChessLogic.h"
 #include "ChessRenderer.h"
+#include "MenuLogic.h"
 #include "MenuRenderer.h"
 
 
 class Game {
 private:
+    friend MenuLogic;
     ChessLogic chessLogic;
     ChessRenderer chessRenderer;
+    MenuLogic menuLogic;
     MenuRenderer menuRenderer;
 
     inline static Game* gameInstance = nullptr;
@@ -17,22 +20,18 @@ private:
     SDL_Window* window = nullptr;
     SDL_Renderer* renderer = nullptr;
 
-    bool mouseInChessBoard() {
-        return mouse.pos.x >= boardPosition.x && mouse.pos.x <= (boardPosition.x + boardSize.x) &&
-            mouse.pos.y >= boardPosition.y && mouse.pos.y <= (boardPosition.y + boardSize.y);
-    }
     void mouseDown(const SDL_MouseButtonEvent& mouseButton) {
         mouse.left = mouseButton.button == SDL_BUTTON_LEFT ? true : mouse.left;
         mouse.right = mouseButton.button == SDL_BUTTON_RIGHT ? true : mouse.right;
         mouse.middle = mouseButton.button == SDL_BUTTON_MIDDLE ? true : mouse.middle;
 
         if(mouseButton.button == SDL_BUTTON_LEFT) {
-            if(mouseInChessBoard()){
-                chessLogic.SelectPiece(GetMousePiece());
-            }
+            chessLogic.SelectPiece(GetMousePiece());
+            menuLogic.PressLeft();
         }
         if(mouseButton.button == SDL_BUTTON_RIGHT) {
             chessLogic.DeselectPiece();
+            menuLogic.PressRight();
         }
     }
     void mouseUp(const SDL_MouseButtonEvent& mouseButton) {
@@ -42,6 +41,10 @@ private:
 
         if(mouseButton.button == SDL_BUTTON_LEFT) {
             chessLogic.CheckMouseDeselect(GetMousePiece());
+            menuLogic.ReleaseLeft();
+        }
+        if(mouseButton.button == SDL_BUTTON_RIGHT) {
+            menuLogic.ReleaseRight();
         }
     }
     void mouseMotion(const SDL_MouseMotionEvent& mouseMotion) {
@@ -69,7 +72,7 @@ private:
 
     }
 public:
-    inline static constexpr i32Vec2 menuSize = {0, 640};
+    inline static constexpr i32Vec2 menuSize = {100, 640};
     inline static constexpr i32Vec2 boardSize = {640, 640};
     inline static constexpr i32Vec2 boardPosition = {0,0};
     inline static constexpr i32Vec2 menuPosition = {boardSize.x,0};
@@ -104,8 +107,9 @@ public:
         gameInstance = this;
         initWindow();
         chessLogic.Init();
+        menuLogic.Init();
         chessRenderer.Init(boardSize);
-        //menuRenderer.Init(menuSize);
+        menuRenderer.Init(menuSize);
         chessLogic.SetTurnChangeCallback([&]() {
             if(chessRenderer.FlipBoardOnTurn()) {
                 chessRenderer.FlipBoard();
@@ -114,6 +118,9 @@ public:
     }
     ChessLogic* GetChessLogic() {
         return &chessLogic;
+    }
+	MenuLogic* GetMenuLogic() {
+        return &menuLogic;
     }
     SDL_Window* GetWindow() {
         return window;
@@ -142,7 +149,7 @@ public:
                 }
             }
             chessRenderer.Render(renderer, boardPosition, boardSize);
-            //menuRenderer.Render(renderer, menuPosition, menuSize);
+            menuRenderer.Render(renderer, menuPosition, menuSize);
         }
 
 	}

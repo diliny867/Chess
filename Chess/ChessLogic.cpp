@@ -84,6 +84,7 @@ void ChessLogic::CheckMouseLeftSquare(ChessBase::XY pieceXY) {
 }
 void ChessLogic::SelectPiece(ChessBase::XY pieceXY) {
 	if(pieceXY.x < 0 || pieceXY.x >= 8 || pieceXY.y < 0 || pieceXY.y >= 8) {
+		DeselectPiece();
 		return;
 	}
 	if(promotionData.promotion) {

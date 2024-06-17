@@ -4,9 +4,9 @@
 #include <SDL2/SDL.h>
 
 #include "PieceRender.h"
-#include "ChessBase.h"
 
 #include "GameSectionRenderer.h"
+#include "ChessBase.h"
 
 
 class ChessRenderer: public GameSectionRenderer{

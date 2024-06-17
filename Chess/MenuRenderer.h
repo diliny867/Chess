@@ -2,11 +2,22 @@
 
 #include <SDL2/SDL.h>
 
+#include "CheckboxRender.h"
+#include "ButtonRender.h"
+
 #include "GameSectionRenderer.h"
+#include "MenuLogic.h"
 
 class MenuRenderer: public GameSectionRenderer {
 private:
-	class ChessLogic* chess = nullptr;
+	MenuLogic* menu = nullptr;
+
+	CheckboxRender checkboxRender;
+	ButtonRender buttonRender;
+
+	void renderBackground();
+	void renderButton(const MenuLogic::FuncionData& fd);
+	void renderButtons();
 
 public:
 	void Init(i32Vec2 size) override;

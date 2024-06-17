@@ -3,14 +3,14 @@
 #include <cstdint>
 #include <ostream>
 
-typedef uint8_t u8;
 typedef int8_t i8;
-typedef uint16_t u16;
+typedef uint8_t u8;
 typedef int16_t i16;
-typedef uint32_t u32;
+typedef uint16_t u16;
 typedef int32_t i32;
-typedef uint64_t u64;
+typedef uint32_t u32;
 typedef int64_t i64;
+typedef uint64_t u64;
 typedef float f32;
 typedef double f64;
 
@@ -24,16 +24,15 @@ struct Vec2 {
 	inline bool operator!=(const Vec2& rhs) {
 		return !(*this == rhs);
 	}
-
 };
 template <typename>
 std::ostream& operator<<(std::ostream& os, const Vec2<f32>& vec) {
-	os<<f32(vec.x)<<", "<<f32(vec.y);
+	os<<vec.x<<", "<<vec.y;
 	return os;
 }
 template <typename>
 std::ostream& operator<<(std::ostream& os, const Vec2<f64>& vec) {
-	os<<f64(vec.x)<<", "<<f64(vec.y);
+	os<<vec.x<<", "<<vec.y;
 	return os;
 }
 template <typename T>

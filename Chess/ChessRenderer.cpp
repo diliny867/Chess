@@ -12,7 +12,6 @@ void ChessRenderer::Init(i32Vec2 size){
 	Game* game = Game::GetCurrentGame();
 	init(game->GetRenderer(),size);
 	chess = game->GetChessLogic();
-	currRenderer = game->GetRenderer();
 
 	pawnRender.Init(currRenderer, "res/black-pawn.png", "res/white-pawn.png");
 	bishopRender.Init(currRenderer, "res/black-bishop.png", "res/white-bishop.png");
@@ -138,7 +137,7 @@ void ChessRenderer::renderBackgroundAndPieces() {
 				renderBoardSquare({x, y}, {Game::squareSize,Game::squareSize},0x76, 0x96, 0x56, SDL_ALPHA_OPAQUE);
 			}
 
-			if(!Game::mouse.left || chess->selectedPieceXY.x != x || chess->selectedPieceXY.y != y) {
+			if(!Game::mouse.left || chess->selectedPieceXY.x != x || chess->selectedPieceXY.y != y || Game::mouse.left && !chess->pieceSelected) {
 				renderPiece(chess->GetPiece(x,y), {x, y}, {Game::squareSize,Game::squareSize});
 			}
 		}
