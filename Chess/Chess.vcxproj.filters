@@ -74,5 +74,8 @@
     <ClInclude Include="ButtonRender.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="TextRender.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
 </Project>

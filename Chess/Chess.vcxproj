@@ -160,6 +160,7 @@
     <ClInclude Include="Image.h" />
     <ClInclude Include="PieceRender.h" />
     <ClInclude Include="GameSectionRenderer.h" />
+    <ClInclude Include="TextRender.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

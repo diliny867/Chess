@@ -6,12 +6,7 @@
 #include "Common.h"
 
 class MenuLogic {
-private:
-	friend class MenuRenderer;
-
-	class Game* game = nullptr;
-	class ChessLogic* chess = nullptr;
-
+public:
 	enum ButtonType {
 		Click,
 		Checkbox
@@ -23,29 +18,36 @@ private:
 	};
 	struct ButtonMetadata {
 		ButtonType type = Click;
+		struct{
+			bool show = false;
+			std::string text = "";
+		} onHoverText = {};
 	};
 	struct CheckBoxMetadata : ButtonMetadata {
 		bool active = false;
 	};
 	struct FuncionData{
 		FunctionActions action = None;
-		bool pressed = false;
-		bool onPress = false; // on press or on release
-		ButtonMetadata* metadata;
+		bool triggerPressed = false;
+		bool triggerOnPress = false; // on press or on release
 		i32Vec2 position = {0,0};
 		i32Vec2 size = {0,0};
+		ButtonMetadata* metadata;
 		std::function<void(FuncionData& fd)> function = nullptr;
 		//void(MenuLogic::* function)() = nullptr;
 	};
-	enum Button {
+	enum TriggerButton {
 		Left,
 		Right,
 		Both
 	};
-	std::unordered_map<Button, std::vector<FuncionData>> buttons;
+private:
+	friend class MenuRenderer;
 
+	class Game* game = nullptr;
+	class ChessLogic* chess = nullptr;
 
-	void trigger(FuncionData& fd);
+	std::unordered_map<TriggerButton, std::vector<FuncionData>> buttons;
 
 	void toggleFlipBoardOnTurn();
 	void flipBoard();

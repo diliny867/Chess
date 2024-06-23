@@ -29,6 +29,7 @@ void GameSectionRenderer::resetTexture(i32Vec2 size) {
 	if (renderTargetTexture == NULL) {
 		std::cout << "SDL_CreateTexture Error: " << SDL_GetError() << std::endl;
 	}
+	SDL_SetTextureBlendMode(renderTargetTexture, SDL_BLENDMODE_BLEND);
 }
 
 void GameSectionRenderer::init(SDL_Renderer* renderer, i32Vec2 size) {
@@ -40,13 +41,20 @@ void GameSectionRenderer::initRender(SDL_Renderer* renderer/*, i32Vec2 position,
 	currRenderer = renderer;
 	//onScreenPosition = position;
 	//onScreenSize = size;
+	SetCurrentContext();
+}
+
+void GameSectionRenderer::SetCurrentContext() {
 	SDL_SetRenderTarget(currRenderer, renderTargetTexture);
 }
+void GameSectionRenderer::SetGlobalContext() {
+	SDL_SetRenderTarget(currRenderer, NULL);
+}
+
 void GameSectionRenderer::present(i32Vec2 position, i32Vec2 size) {
 	SDL_Rect rect = {position.x, position.y, size.x, size.y};
-	SDL_SetRenderTarget(currRenderer, NULL);
+	SetGlobalContext();
 	SDL_RenderCopy(currRenderer, renderTargetTexture, NULL, &rect);
-	SDL_RenderPresent(currRenderer);
 }
 
 void GameSectionRenderer::Init(i32Vec2 size) {
@@ -65,6 +73,9 @@ void GameSectionRenderer::Render(SDL_Renderer* renderer, i32Vec2 position, i32Ve
 	//Do the render thing
 
 	present(position, size);
+	SetCurrentContext();
+	clear(0, 0, 0, 0);
+	SetGlobalContext();
 }
 
 GameSectionRenderer::~GameSectionRenderer() {

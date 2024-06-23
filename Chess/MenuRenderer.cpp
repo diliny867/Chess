@@ -11,6 +11,7 @@ void MenuRenderer::Init(i32Vec2 size) {
 	menu = game->GetMenuLogic();
 	checkboxRender.Init(currRenderer,"res/checkbox-checked.png", "res/checkbox-unchecked.png");
 	buttonRender.Init(currRenderer, "res/button-darkgreen.png", "res/button-hovered-darkgreen.png");
+	textRender.Init(currRenderer);
 }
 
 
@@ -21,7 +22,7 @@ void MenuRenderer::renderBackground() {
 	renderSquare({offset,offset},{size.x-offset*2,size.y-offset*2},0xee, 0xee, 0xd2,SDL_ALPHA_OPAQUE);
 }
 
-void MenuRenderer::renderButton(const MenuLogic::FuncionData&fd) {
+void MenuRenderer::renderButton(const MenuLogic::FuncionData& fd) {
 	auto mouse = Game::GetMouseRelative(Game::menuPosition);
 	bool hovered = mouse.x >= fd.position.x && mouse.x <= fd.position.x+fd.size.x && mouse.y >= fd.position.y && mouse.y <= fd.position.y+fd.size.y;
 	switch(fd.metadata->type) {
@@ -35,6 +36,17 @@ void MenuRenderer::renderButton(const MenuLogic::FuncionData&fd) {
 		checkboxRender.size = fd.size;
 		checkboxRender.Render(currRenderer, reinterpret_cast<MenuLogic::CheckBoxMetadata*>(fd.metadata)->active);
 		break;
+	}
+	if(fd.metadata->onHoverText.show && hovered) {
+		auto mouseAbsolute = Game::mouse.pos;
+		textRender.position = mouseAbsolute;
+		textRender.position.x += 35;
+		textRender.position.y += 35;
+		textRender.scale ={1.25, 1.25};
+		textRender.text = fd.metadata->onHoverText.text;
+		Game::GetCurrentGame()->SetOverlayRenderContext();
+		textRender.Render(currRenderer, true);
+		SetCurrentContext();
 	}
 }
 

@@ -1,5 +1,7 @@
 #pragma once
 
+#include "Image.h"
+
 class ButtonRender {
 private:
 	Image buttonImg;

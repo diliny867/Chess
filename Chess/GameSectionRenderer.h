@@ -23,6 +23,8 @@ protected:
 public:
 	virtual void Init(i32Vec2 size);
 
+	void SetGlobalContext();
+	void SetCurrentContext();
 	void ResetSize(SDL_Renderer* renderer, i32Vec2 size);
 
 	virtual void Render(SDL_Renderer* renderer, i32Vec2 position, i32Vec2 size);

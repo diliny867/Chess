@@ -14,6 +14,7 @@ private:
     ChessRenderer chessRenderer;
     MenuLogic menuLogic;
     MenuRenderer menuRenderer;
+    GameSectionRenderer overlayRenderer;
 
     inline static Game* gameInstance = nullptr;
 
@@ -69,7 +70,7 @@ private:
         }
 
         SDL_SetHint(SDL_HINT_RENDER_SCALE_QUALITY, "2");
-
+        textRender.Init(renderer);
     }
 public:
     inline static constexpr i32Vec2 menuSize = {100, 640};
@@ -81,10 +82,7 @@ public:
     	std::max(menuPosition.y+menuSize.y, boardPosition.y+boardSize.y)};
 
     struct Mouse {
-        struct {
-            i32 x;
-            i32 y;
-        } pos;
+        i32Vec2 pos;
         bool left;
         bool right;
         bool middle;
@@ -96,8 +94,10 @@ public:
     ChessBase::XY GetMousePiece() {
         const auto relative = Game::GetMouseRelative(Game::boardPosition);
         return {static_cast<i8>(relative.x/Game::squareSize),
-            static_cast<i8>(((chessRenderer.IsBoardFlipped() && chessLogic.GetCurrentPlayerColor() != PieceRender::White) ? relative.y : Game::boardSize.y - relative.y)/Game::squareSize)};
+            static_cast<i8>((chessRenderer.IsBoardFlipped() ? relative.y : Game::boardSize.y - relative.y)/Game::squareSize)};
     }
+
+    TextRender textRender;
 
     static Game* GetCurrentGame() {
         return gameInstance;
@@ -110,6 +110,7 @@ public:
         menuLogic.Init();
         chessRenderer.Init(boardSize);
         menuRenderer.Init(menuSize);
+        overlayRenderer.Init(windowSize);
         chessLogic.SetTurnChangeCallback([&]() {
             if(chessRenderer.FlipBoardOnTurn()) {
                 chessRenderer.FlipBoard();
@@ -127,6 +128,9 @@ public:
     }
     SDL_Renderer* GetRenderer() {
         return renderer;
+    }
+    void SetOverlayRenderContext() {
+        overlayRenderer.SetCurrentContext();
     }
 	void Run() {
         bool quit = false;
@@ -150,6 +154,8 @@ public:
             }
             chessRenderer.Render(renderer, boardPosition, boardSize);
             menuRenderer.Render(renderer, menuPosition, menuSize);
+            overlayRenderer.Render(renderer, {0,0}, windowSize);
+            SDL_RenderPresent(renderer);
         }
 
 	}
