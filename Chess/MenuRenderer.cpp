@@ -40,10 +40,12 @@ void MenuRenderer::renderButton(const MenuLogic::FuncionData& fd) {
 	if(fd.metadata->onHoverText.show && hovered) {
 		auto mouseAbsolute = Game::mouse.pos;
 		textRender.position = mouseAbsolute;
-		textRender.position.x += 35;
-		textRender.position.y += 35;
-		textRender.scale ={1.25, 1.25};
+		//textRender.position.x += 35;
+		//textRender.position.y += 35;
 		textRender.text = fd.metadata->onHoverText.text;
+		textRender.textScale = {1.25, 1.25};
+		textRender.borderSize = {10,10};
+		//textRender.SetFontSize(12, 12);
 		Game::GetCurrentGame()->SetOverlayRenderContext();
 		textRender.Render(currRenderer, true);
 		SetCurrentContext();

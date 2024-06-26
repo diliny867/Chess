@@ -7,28 +7,30 @@
 
 class TextRender {
 private:
+	i32Vec2 fontSize = {8,8}; // 8 from SDL2_gfxPrimitives.c
 public:
-	inline static u32 gfxPrimCharWidth = 8; // from SDL2_gfxPrimitives.c
-	inline static u32 gfxPrimCharHeight = 8;
 	i32Vec2 position = {0,0};
 	f32Vec2 scale = {0,0};
 	std::string text;
 
 	void Init(SDL_Renderer* renderer){
-		gfxPrimitivesSetFont(gfxPrimitivesFontdata, gfxPrimCharWidth, gfxPrimCharHeight); //set default gfx_Primitives font
+		gfxPrimitivesSetFont(gfxPrimitivesFontdata, fontSize.x, fontSize.y); //set default gfx_Primitives font
 		text = "";
 	}
 
-	void SetFontSize(u32 charW, u32 charH) {
+	i32Vec2 GetFontSize() {
+		return fontSize;
+	}
+	void SetFontSize(i32 charW, i32 charH) { // why breaks
 		gfxPrimitivesSetFont(gfxPrimitivesFontdata, charW, charH);
-		gfxPrimCharWidth = charW;
-		gfxPrimCharHeight = charH;
+		fontSize.x = charW;
+		fontSize.y = charH;
 	}
 
 	void Render(SDL_Renderer* renderer, bool rightToLeft = false) {
-		i16 offsetX = text.size() * gfxPrimCharWidth * i16(rightToLeft);
+		i16 offsetX = text.size() * fontSize.x * i16(rightToLeft);
 		SDL_RenderSetScale(renderer, scale.x, scale.y);
-		stringRGBA(renderer, position.x/scale.y - offsetX, position.y/scale.y, text.c_str(), 0x00, 0x00, 0x00, SDL_ALPHA_OPAQUE);
+		stringRGBA(renderer, position.x/scale.x - offsetX, position.y/scale.y, text.c_str(), 0x00, 0x00, 0x00, SDL_ALPHA_OPAQUE);
 		SDL_RenderSetScale(renderer, 1, 1);
 	}
 };

@@ -4,7 +4,7 @@
 
 #include "CheckboxRender.h"
 #include "ButtonRender.h"
-#include "TextRender.h"
+#include "TextBoxRender.h"
 
 #include "GameSectionRenderer.h"
 #include "MenuLogic.h"
@@ -15,7 +15,7 @@ private:
 
 	CheckboxRender checkboxRender;
 	ButtonRender buttonRender;
-	TextRender textRender;
+	TextBoxRender textRender;
 
 	void renderBackground();
 	void renderButton(const MenuLogic::FuncionData& fd);
